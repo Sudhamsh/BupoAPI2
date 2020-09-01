@@ -2,7 +2,7 @@ package com.bupo.beans;
 
 import java.util.Date;
 
-import com.bupo.enums.MaritalStatus;
+import com.bupo.enums.MarritalStatus;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +19,7 @@ public class Person {
 	private String phone;
 	private Date dateOfBirth;
 	private int age;
-	private MaritalStatus maritalStatus;
+	private int licenseAgeAt;
+	private MarritalStatus maritalStatus;
 
 }

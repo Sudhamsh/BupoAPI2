@@ -1,10 +1,18 @@
 package com.bupo.dao;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Preconditions;
 
 public class BaseDao {
 
@@ -41,6 +49,32 @@ public class BaseDao {
 		} finally {
 			em.close();
 		}
+	}
+
+	public <T> List<T> findByNamedQuery(String queryName, Map<String, String> paramsMap, Class<T> entityClass) {
+		Preconditions.checkNotNull(queryName, "Query Name is null");
+		Preconditions.checkNotNull(paramsMap, "paramsMap is null, send empty list if there are no params");
+
+		EntityManager em = getEMF().createEntityManager();
+		List<T> resultList = new ArrayList<T>();
+		try {
+			Query query = em.createNamedQuery(queryName);
+			for (Map.Entry<String, String> param : paramsMap.entrySet()) {
+				System.out.println("param value" + param.getValue());
+				query.setParameter(param.getKey(), param.getValue());
+			}
+
+			resultList = query.getResultList();
+
+			if (resultList.size() == 0) {
+				throw new EntityNotFoundException("Result not found!");
+			}
+
+		} finally {
+			em.close();
+		}
+
+		return resultList;
 	}
 
 	public <E, T> void update(Class<T> entityClass, E entity) {

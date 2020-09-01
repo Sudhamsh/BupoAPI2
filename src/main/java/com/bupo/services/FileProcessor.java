@@ -39,13 +39,14 @@ public class FileProcessor {
 		if (userAuto == null) {
 			// TODO convert text to json before db insert
 			userAuto = new UserAuto();
-			userAuto.setEmailId(loggedInUser);
+			userAuto.setEmail(loggedInUser);
 			JsonArray array = new JsonArray();
 			array.add(filePath);
 			userAuto.setPolicyUrls(array.toString());
 			baseDao.update(UserAuto.class, userAuto);
 
 		} else {
+			userAuto = new UserAuto();
 			String existingUrls = userAuto.getPolicyUrls();
 			JsonArray array = JsonUtil.isJson(existingUrls) ? new Gson().fromJson(existingUrls, JsonArray.class)
 					: new JsonArray();

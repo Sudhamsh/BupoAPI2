@@ -8,7 +8,7 @@ public class AutoUserTestUtil {
 
 		UserAuto userAuto = new UserAuto();
 		String emailId = System.currentTimeMillis() + "@g.com";
-		userAuto.setEmailId(emailId);
+		userAuto.setEmail(emailId);
 
 		return userAuto;
 

@@ -16,7 +16,9 @@ public class JerseyServiceTest extends JerseyTest {
 
 	@Override
 	protected Application configure() {
+
 		return new ResourceConfig(JerseyService.class);
+
 	}
 
 	@Test

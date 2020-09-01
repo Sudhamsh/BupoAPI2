@@ -3,6 +3,8 @@ package com.bupo.beans;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +12,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Automobile {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Vehicle {
 
 	private String make;
 	private String model;
@@ -18,8 +21,8 @@ public class Automobile {
 	private int yearlyMileage;
 	private int presentMileage;
 	private String vin;
-	private List<String> usage; // Commute,leisure,
-	private List<Coverage> coverages;
+	private List<String> usage = new ArrayList<String>(); // Commute,leisure,
+	private List<Coverage> coverages = new ArrayList<Coverage>();
 	private String type;
 
 	// discounts

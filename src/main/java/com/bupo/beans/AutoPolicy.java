@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.bupo.enums.HomeOwnership;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,8 +15,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonInclude(Include.NON_EMPTY)
 public class AutoPolicy {
 
+	private HomeOwnership homeOwnership;
 	// policy details
 	private String policyNumber;
 	private Date policyStartDate;
@@ -33,7 +39,7 @@ public class AutoPolicy {
 
 	// policy holder details
 	private Address insuredAddress;
-	private List<Automobile> automobileList = new ArrayList<Automobile>();
+	private List<Vehicle> automobileList = new ArrayList<Vehicle>();
 
 	// discounts
 	private List<Discount> discounts = new ArrayList<Discount>();
@@ -42,5 +48,8 @@ public class AutoPolicy {
 	private List<AutoDriver> autoDrivers = new ArrayList<AutoDriver>();
 
 	private LeinHolder leinHolder;
+
+	private String fileName; // TODO: doesn't fit in this class, returning this value to UI will be a
+								// security risk #SECURITY
 
 }

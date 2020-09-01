@@ -1,12 +1,13 @@
 package com.bupo.enums;
 
-public enum MaritalStatus {
+public enum EducationLevel {
 
-	Married("Married"), Single("Single"), Widowed("Widowed"), Divorced("Divorced"), NA("N/A");
+	HIGH_SCHOOL("High School"), ASSOCIATE_DEGREE("Associate Degree"), BACHELORS_DEGREE("Bachelor's Degree"),
+	MASTERS_DEGREE("Master's Degree"), DOCTORAL_DEGREE("Doctoral degree"), UNKNOWN("UNKNOWN");
 
 	private final String name;
 
-	private MaritalStatus(String s) {
+	private EducationLevel(String s) {
 		name = s;
 	}
 
