@@ -13,8 +13,11 @@ import javax.ws.rs.core.Response;
 import com.bupo.beans.AutoPolicyRequest;
 import com.bupo.dao.model.UserAuto;
 import com.bupo.services.AutoPolicyService;
+import com.bupo.util.JsonUtil;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 @Path("/auto")
 public class AutoPolicyAPI {
@@ -50,7 +53,14 @@ public class AutoPolicyAPI {
 			AutoPolicyService autoPolicyService = new AutoPolicyService();
 			UserAuto userAuto = autoPolicyService.getAutoPolicyDetails(code, lastName, zip);
 
-			response = Response.status(200).entity(new Gson().toJson(userAuto)).build();
+			// crapy work around as string contains a json. Couldn't find a better solution.
+			JsonElement jsonElement = new Gson().toJsonTree(userAuto);
+			if (JsonUtil.isJson(userAuto.getPolicyRequestDetails())) {
+				JsonObject jsonObject = JsonParser.parseString(userAuto.getPolicyRequestDetails()).getAsJsonObject();
+				jsonElement.getAsJsonObject().add("policyRequestDetails", jsonObject);
+			}
+
+			response = Response.status(200).entity(jsonElement.toString()).build();
 		} catch (EntityNotFoundException e) {
 			JsonObject responseObj = new JsonObject();
 			responseObj.addProperty("error", "No Results Found");

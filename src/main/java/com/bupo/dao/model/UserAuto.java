@@ -30,7 +30,6 @@ public class UserAuto {
 	String zip;
 	@Column(name = "policy_details_file") // TODO: Find better way to store file content, DB is not the best place.
 	String policyDetailsFile;
-
 	@Column(name = "policy_request_details")
 	String policyRequestDetails;
 
