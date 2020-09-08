@@ -9,6 +9,9 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import org.apache.log4j.Logger;
 
@@ -42,6 +45,19 @@ public class BaseDao {
 		}
 	}
 
+	public <E> void update(E entity) {
+		EntityManager em = getEMF().createEntityManager();
+		try {
+			em.getTransaction().begin();
+			em.merge(entity);
+			em.flush();
+			em.getTransaction().commit();
+
+		} finally {
+			em.close();
+		}
+	}
+
 	public <T> T findById(Class<T> entityClass, Object primaryKey) {
 		EntityManager em = getEMF().createEntityManager();
 		try {
@@ -49,6 +65,28 @@ public class BaseDao {
 		} finally {
 			em.close();
 		}
+	}
+
+	public <T> List<T> findByField(Class<T> entityClass, String fieldName, Object value) {
+		EntityManager em = getEMF().createEntityManager();
+		List<T> result = new ArrayList<T>();
+		try {
+			CriteriaBuilder queryBuilder = em.getCriteriaBuilder();
+			CriteriaQuery<T> criteriaQuery = queryBuilder.createQuery(entityClass);
+			Root<T> customer = criteriaQuery.from(entityClass);
+			criteriaQuery.select(customer).where(queryBuilder.equal(customer.get(fieldName), value));
+
+			result = em.createQuery(criteriaQuery).getResultList();
+
+			if (result.size() == 0) {
+				throw new EntityNotFoundException("Result not found!");
+			}
+
+		} finally {
+			em.close();
+		}
+
+		return result;
 	}
 
 	public <T> List<T> findByNamedQuery(String queryName, Map<String, String> paramsMap, Class<T> entityClass) {

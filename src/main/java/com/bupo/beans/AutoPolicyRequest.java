@@ -18,11 +18,17 @@ import lombok.Setter;
 public class AutoPolicyRequest {
 	private String firstName;
 	private String lastName;
-	private String zip;
 	private String phone;
 	private String email;
+	private String homeOwnership;
+
+	private Address address;
+
 	private List<Vehicle> vehicles;
 	private List<AutoDriver> drivers;
-	private List<Coverage> coverages;
+	private Coverage coverage;
+
+	// Used for updates
+	private String code;
 
 }

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.bupo.dao.model.UserAuto;
@@ -47,6 +48,20 @@ public class BaseDaoTest {
 			e.printStackTrace();
 		}
 
+	}
+
+	@Test
+	public void findByField() {
+		BaseDao baseDao = new BaseDao();
+		UserAuto userAuto = AutoUserTestUtil.createUser();
+
+		List<UserAuto> resultList = baseDao.findByField(UserAuto.class, "email", "awerewasdfsdf@asfdasfasdf.com");
+		Assert.assertTrue("Found a DB entry when it shouldn't", resultList.size() == 0);
+
+		resultList = baseDao.findByField(UserAuto.class, "email", "a@a.com");
+		Assert.assertTrue("Found a DB entry when it shouldn't", resultList.size() > 0);
+
+		baseDao.delete(userAuto);
 	}
 
 }
