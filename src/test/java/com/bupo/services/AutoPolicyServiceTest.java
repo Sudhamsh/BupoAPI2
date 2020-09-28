@@ -17,7 +17,7 @@ public class AutoPolicyServiceTest {
 		// Create request
 		AutoPolicyRequest autoPolicyRequest = new AutoPolicyRequest();
 		autoPolicyRequest.setLastName("LastName");
-		autoPolicyRequest.setZip("40000");
+		autoPolicyRequest.getAddress().setZip("40000");
 
 		AutoPolicyService autoPolicyService = new AutoPolicyService();
 		String code = autoPolicyService.createAutoPolcyRequest(autoPolicyRequest);
@@ -51,7 +51,7 @@ public class AutoPolicyServiceTest {
 		AutoPolicyRequest autoPolicyRequest = new AutoPolicyRequest();
 
 		autoPolicyRequest.setLastName(lastName);
-		autoPolicyRequest.setZip(zip);
+		autoPolicyRequest.getAddress().setZip(zip);
 		// TODO set more data
 
 		AutoPolicyService autoPolicyService = new AutoPolicyService();

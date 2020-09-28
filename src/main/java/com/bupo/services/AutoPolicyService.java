@@ -1,6 +1,7 @@
 package com.bupo.services;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class AutoPolicyService {
 		BaseDao baseDao = new BaseDao();
 
 		try {
-			List<UserAuto> resultList = baseDao.findByField(UserAuto.class, "code", autoPolicyRequest.getCode());
+			List<UserAuto> resultList = baseDao.findByField(UserAuto.class, "code", autoPolicyRequest.getCode(), 1);
 			UserAuto userAuto = resultList.get(0);
 
 			BeanUtils.copyProperties(userAuto, autoPolicyRequest);
@@ -73,7 +74,6 @@ public class AutoPolicyService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 	public UserAuto getAutoPolicyDetails(String code, String lastName, String zip) {
@@ -85,10 +85,52 @@ public class AutoPolicyService {
 		paramsMap.put("lastName", lastName);
 		paramsMap.put("zip", zip);
 
-		userAuto = baseDao.findByNamedQuery("findAutoByCodeByLnameByZip", paramsMap, UserAuto.class).get(0);
+		userAuto = baseDao.findByNamedQuery("findAutoByCodeByLnameByZip", paramsMap, UserAuto.class, 1).get(0);
 
 		// Set id to 0
 		userAuto.setId(0);
+
+		return userAuto;
+
+	}
+
+	public List<UserAuto> getOpenAutoPolicy() {
+
+		// TODO Limit by agent auth
+		List<UserAuto> userAutos = new ArrayList<UserAuto>();
+
+		BaseDao baseDao = new BaseDao();
+		String sqlQuery = "select code as code,zip as zip, status as status from user_auto";
+		List<Object[]> results = baseDao.findByNativeQuery(sqlQuery, 10);
+		for (Object[] objects : results) {
+			UserAuto userAuto = new UserAuto();
+			userAuto.setCode((String) objects[0]);
+			userAuto.setZip((String) objects[1]);
+			userAuto.setStatus((String) objects[2]);
+
+			userAutos.add(userAuto);
+		}
+
+		return userAutos;
+
+	}
+
+	public UserAuto getAutoPolicyDetails(String code, String userRole, boolean hidePersonalInfo) {
+		UserAuto userAuto = null;
+
+		BaseDao baseDao = new BaseDao();
+		Map<String, String> paramsMap = new HashMap<String, String>();
+		paramsMap.put("code", code);
+
+		userAuto = baseDao.findByNamedQuery("findAutoByCode", paramsMap, UserAuto.class, 1).get(0);
+
+		// Set id to 0
+		userAuto.setId(0);
+
+		// Hide Personal Info
+		if (hidePersonalInfo) {
+			userAuto.anonymizePersonalData();
+		}
 
 		return userAuto;
 

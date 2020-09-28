@@ -67,7 +67,7 @@ public class BaseDao {
 		}
 	}
 
-	public <T> List<T> findByField(Class<T> entityClass, String fieldName, Object value) {
+	public <T> List<T> findByField(Class<T> entityClass, String fieldName, Object value, int maxResults) {
 		EntityManager em = getEMF().createEntityManager();
 		List<T> result = new ArrayList<T>();
 		try {
@@ -76,7 +76,7 @@ public class BaseDao {
 			Root<T> customer = criteriaQuery.from(entityClass);
 			criteriaQuery.select(customer).where(queryBuilder.equal(customer.get(fieldName), value));
 
-			result = em.createQuery(criteriaQuery).getResultList();
+			result = em.createQuery(criteriaQuery).setMaxResults(maxResults).getResultList();
 
 			if (result.size() == 0) {
 				throw new EntityNotFoundException("Result not found!");
@@ -89,7 +89,8 @@ public class BaseDao {
 		return result;
 	}
 
-	public <T> List<T> findByNamedQuery(String queryName, Map<String, String> paramsMap, Class<T> entityClass) {
+	public <T> List<T> findByNamedQuery(String queryName, Map<String, String> paramsMap, Class<T> entityClass,
+			int maxSize) {
 		Preconditions.checkNotNull(queryName, "Query Name is null");
 		Preconditions.checkNotNull(paramsMap, "paramsMap is null, send empty list if there are no params");
 
@@ -98,12 +99,30 @@ public class BaseDao {
 		try {
 			Query query = em.createNamedQuery(queryName);
 			for (Map.Entry<String, String> param : paramsMap.entrySet()) {
-				System.out.println("param value" + param.getValue());
 				query.setParameter(param.getKey(), param.getValue());
 			}
 
-			resultList = query.getResultList();
+			resultList = query.setMaxResults(maxSize).getResultList();
 
+			if (resultList.size() == 0) {
+				throw new EntityNotFoundException("Result not found!");
+			}
+
+		} finally {
+			em.close();
+		}
+
+		return resultList;
+	}
+
+	public List<Object[]> findByNativeQuery(String sqlQuery, int maxResults) {
+		Preconditions.checkNotNull(sqlQuery, "Query  is null");
+
+		EntityManager em = getEMF().createEntityManager();
+		List<Object[]> resultList;
+		try {
+			Query query = em.createNativeQuery(sqlQuery);
+			resultList = query.setMaxResults(maxResults).getResultList();
 			if (resultList.size() == 0) {
 				throw new EntityNotFoundException("Result not found!");
 			}

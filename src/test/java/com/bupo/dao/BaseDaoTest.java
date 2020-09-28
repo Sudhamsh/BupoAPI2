@@ -42,7 +42,8 @@ public class BaseDaoTest {
 			paramsMap.put("lastName", "bachu");
 			paramsMap.put("zip", "40000");
 
-			List<UserAuto> results = baseDao.findByNamedQuery("findAutoByCodeByLnameByZip", paramsMap, UserAuto.class);
+			List<UserAuto> results = baseDao.findByNamedQuery("findAutoByCodeByLnameByZip", paramsMap, UserAuto.class,
+					10);
 			System.out.println(results.size());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -55,10 +56,10 @@ public class BaseDaoTest {
 		BaseDao baseDao = new BaseDao();
 		UserAuto userAuto = AutoUserTestUtil.createUser();
 
-		List<UserAuto> resultList = baseDao.findByField(UserAuto.class, "email", "awerewasdfsdf@asfdasfasdf.com");
+		List<UserAuto> resultList = baseDao.findByField(UserAuto.class, "email", "awerewasdfsdf@asfdasfasdf.com", 1);
 		Assert.assertTrue("Found a DB entry when it shouldn't", resultList.size() == 0);
 
-		resultList = baseDao.findByField(UserAuto.class, "email", "a@a.com");
+		resultList = baseDao.findByField(UserAuto.class, "email", "a@a.com", 1);
 		Assert.assertTrue("Found a DB entry when it shouldn't", resultList.size() > 0);
 
 		baseDao.delete(userAuto);

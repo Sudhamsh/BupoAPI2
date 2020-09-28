@@ -1,5 +1,6 @@
 package com.bupo.beans;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -22,11 +23,11 @@ public class AutoPolicyRequest {
 	private String email;
 	private String homeOwnership;
 
-	private Address address;
+	private Address address = new Address();
 
-	private List<Vehicle> vehicles;
-	private List<AutoDriver> drivers;
-	private Coverage coverage;
+	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
+	private List<AutoDriver> drivers = new ArrayList<AutoDriver>();
+	private Coverage coverage = new Coverage();
 
 	// Used for updates
 	private String code;

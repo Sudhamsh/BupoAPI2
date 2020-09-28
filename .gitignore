@@ -1,0 +1,20 @@
+##############################
+## Java
+##############################
+.mtj.tmp/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+##############################
+## Maven
+##############################
+target/
+target/classes/com/bupo/api/AutoPolicyAPI.class
+*.prefs
+*.class
+src/main/java/com/bupo/.DS_Store
+*.class

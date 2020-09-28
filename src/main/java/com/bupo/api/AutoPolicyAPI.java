@@ -1,5 +1,7 @@
 package com.bupo.api;
 
+import java.util.List;
+
 import javax.persistence.EntityNotFoundException;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -7,6 +9,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -23,6 +26,8 @@ import com.google.gson.JsonParser;
 
 @Path("/auto")
 public class AutoPolicyAPI {
+	AutoPolicyService autoPolicyService = new AutoPolicyService();
+	Gson gson = new Gson();
 
 	@POST
 	@Consumes({ MediaType.APPLICATION_JSON })
@@ -57,7 +62,7 @@ public class AutoPolicyAPI {
 			JsonObject responseObj = new JsonObject();
 			responseObj.addProperty("uniqueCode", autoPolicyRequest.getCode());
 
-			response = Response.status(201).entity(responseObj.toString()).build();
+			response = Response.status(204).entity(responseObj.toString()).build();
 		} catch (Exception e) {
 			response = Response.serverError().build();
 		}
@@ -67,12 +72,54 @@ public class AutoPolicyAPI {
 	}
 
 	@GET
+	@Path("/code/{code}")
+	public Response getAutoDetailsByCode(@PathParam("code") String code) {
+		Response response = null;
+		SearchResultBean<UserAuto> resultBean = new SearchResultBean<UserAuto>();
+		resultBean.setSearchParam("code", code);
+
+		try {
+			UserAuto userAuto = autoPolicyService.getAutoPolicyDetails(code, null, true);
+			resultBean.setCount(1);
+			resultBean.getResults().add(userAuto);
+
+			// crapy work around as string contains a json. Couldn't find a better solution.
+			JsonElement jsonElement = getJsonFromResultBean(resultBean, userAuto.getPolicyRequestDetails());
+
+			response = Response.status(200).entity(jsonElement.toString()).build();
+		} catch (EntityNotFoundException e) {
+
+			resultBean.setCount(0);
+			resultBean.setMessage("No Results Found");
+			response = Response.status(400).entity(gson.toJson(resultBean)).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultBean.setCount(0);
+			resultBean.setMessage("Server Error");
+			response = Response.status(500).entity(gson.toJson(resultBean)).build();
+
+		}
+
+		return response;
+	}
+
+	private JsonElement getJsonFromResultBean(SearchResultBean<UserAuto> resultBean, String policyDetails) {
+		JsonElement jsonElement = gson.toJsonTree(resultBean);
+
+		if (JsonUtil.isJson(policyDetails)) {
+			JsonObject jsonObject = JsonParser.parseString(policyDetails).getAsJsonObject();
+			jsonElement.getAsJsonObject().getAsJsonArray("results").set(0, jsonObject);
+		}
+
+		return jsonElement;
+	}
+
+	@GET
 	@Path("/search")
 	public Response getAutoDetails(@QueryParam("code") String code, @QueryParam("lastName") String lastName,
 			@QueryParam("zip") String zip) {
 		Response response = null;
 		SearchResultBean<UserAuto> resultBean = new SearchResultBean<UserAuto>();
-		Gson gson = new Gson();
 
 		// set params
 		resultBean.setSearchParam("code", code);
@@ -80,19 +127,43 @@ public class AutoPolicyAPI {
 		resultBean.setSearchParam("zip", zip);
 
 		try {
-			AutoPolicyService autoPolicyService = new AutoPolicyService();
 			UserAuto userAuto = autoPolicyService.getAutoPolicyDetails(code, lastName, zip);
 			resultBean.setCount(1);
 			resultBean.getResults().add(userAuto);
 
 			// crapy work around as string contains a json. Couldn't find a better solution.
-			JsonElement jsonElement = gson.toJsonTree(resultBean);
-			if (JsonUtil.isJson(userAuto.getPolicyRequestDetails())) {
-				JsonObject jsonObject = JsonParser.parseString(userAuto.getPolicyRequestDetails()).getAsJsonObject();
-				jsonElement.getAsJsonObject().getAsJsonArray("results").set(0, jsonObject);
-			}
+			JsonElement jsonElement = getJsonFromResultBean(resultBean, userAuto.getPolicyRequestDetails());
 
 			response = Response.status(200).entity(jsonElement.toString()).build();
+		} catch (EntityNotFoundException e) {
+
+			resultBean.setCount(0);
+			resultBean.setMessage("No Results Found");
+			response = Response.status(400).entity(gson.toJson(resultBean)).build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultBean.setCount(0);
+			resultBean.setMessage("Server Error");
+			response = Response.status(500).entity(gson.toJson(resultBean)).build();
+
+		}
+
+		return response;
+
+	}
+
+	@GET
+	@Path("/search/status/open")
+	public Response getOpenRequests() {
+		Response response = null;
+		SearchResultBean<UserAuto> resultBean = new SearchResultBean<UserAuto>();
+
+		try {
+			List<UserAuto> userAutos = autoPolicyService.getOpenAutoPolicy();
+			resultBean.setCount(userAutos.size());
+			resultBean.setResults(userAutos);
+
+			response = Response.status(200).entity(gson.toJson(resultBean)).build();
 		} catch (EntityNotFoundException e) {
 
 			resultBean.setCount(0);

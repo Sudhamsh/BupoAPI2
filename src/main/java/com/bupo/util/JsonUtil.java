@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 public class JsonUtil {
 
 	public static boolean isJson(String json) {
-		if (json == null) {
+		if (json == null || "null".equals(json)) {
 			return false;
 		}
 
