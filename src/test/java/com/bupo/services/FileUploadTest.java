@@ -1,4 +1,4 @@
-package com.bupo.api;
+package com.bupo.services;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +22,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.bupo.api.FileUpload;
 
 public class FileUploadTest extends JerseyTest {
 

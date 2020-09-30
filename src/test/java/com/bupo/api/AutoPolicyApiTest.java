@@ -16,6 +16,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.bupo.beans.Address;
 import com.bupo.beans.AutoDriver;
 import com.bupo.beans.AutoPolicyRequest;
 import com.bupo.enums.EducationLevel;
@@ -69,13 +70,17 @@ public class AutoPolicyApiTest extends JerseyTest {
 		try {
 
 			// Create
-			String email = "apitest@a.com";
+			String email = "a@a.c";
 			String lastName = "lName";
 
 			String zip = "40000";
 			AutoPolicyRequest autoPolicyRequest = new AutoPolicyRequest();
 			autoPolicyRequest.setEmail(email);
 			autoPolicyRequest.setLastName(lastName);
+
+			Address address = new Address();
+			address.setZip(zip);
+			autoPolicyRequest.setAddress(address);
 
 			Response response = target("auto").request(MediaType.APPLICATION_JSON)
 					.post(Entity.entity(autoPolicyRequest, MediaType.APPLICATION_JSON));

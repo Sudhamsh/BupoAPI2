@@ -32,4 +32,6 @@ public class AutoPolicyRequest {
 	// Used for updates
 	private String code;
 
+	private String status;
+
 }

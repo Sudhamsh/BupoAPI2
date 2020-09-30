@@ -1,24 +1,28 @@
 package com.bupo.services;
 
-import java.lang.reflect.InvocationTargetException;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import javax.persistence.EntityNotFoundException;
-
-import org.apache.commons.beanutils.BeanUtils;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.bupo.beans.AutoPolicyRequest;
-import com.bupo.dao.BaseDao;
+import com.bupo.dao.MongoDao;
 import com.bupo.dao.model.UserAuto;
+import com.bupo.enums.MongoCollEnum;
+import com.bupo.util.LogManager;
 import com.bupo.util.RandomString;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mongodb.client.FindIterable;
 
 public class AutoPolicyService {
+	private LogManager logger = LogManager.getLogger(this.getClass());
+	private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
 
 	/**
 	 * Persists auto policy Request. No user auth required
@@ -28,22 +32,20 @@ public class AutoPolicyService {
 	public String createAutoPolcyRequest(AutoPolicyRequest autoPolicyRequest) {
 		Preconditions.checkNotNull(autoPolicyRequest, "autoPolicy is null");
 
-		BaseDao baseDao = new BaseDao();
-		UserAuto userAuto = new UserAuto();
+		MongoDao mongoDao = new MongoDao();
 		String uniqueCode = null;
 
 		try {
-			BeanUtils.copyProperties(userAuto, autoPolicyRequest);
+
 			uniqueCode = RandomString.getAlphaNumericString(20, 5);
 			// TODO check if the code exists in DB. Odds are low but we still need too :)
-			userAuto.setCode(uniqueCode);
-			Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-			userAuto.setPolicyRequestDetails(gson.toJson(autoPolicyRequest));
+			autoPolicyRequest.setCode(uniqueCode);
 
-			baseDao.create(userAuto);
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mongoDao.insert("autoHome", gson.toJson(autoPolicyRequest));
+
+		} catch (Exception e) {
+			logger.error(e);
+			throw new RuntimeException(e);
 		}
 		return uniqueCode;
 	}
@@ -53,60 +55,43 @@ public class AutoPolicyService {
 	 * 
 	 * @param autoPolicyRequest
 	 */
-	public void updateAutoPolcyRequest(AutoPolicyRequest autoPolicyRequest) {
+	public void updateAutoPolicyRequest(AutoPolicyRequest autoPolicyRequest) {
 		Preconditions.checkNotNull(autoPolicyRequest, "autoPolicy is null");
 		Preconditions.checkNotNull(autoPolicyRequest.getCode(), "requestCode is null");
-
-		BaseDao baseDao = new BaseDao();
+		MongoDao mongoDao = new MongoDao();
 
 		try {
-			List<UserAuto> resultList = baseDao.findByField(UserAuto.class, "code", autoPolicyRequest.getCode(), 1);
-			UserAuto userAuto = resultList.get(0);
-
-			BeanUtils.copyProperties(userAuto, autoPolicyRequest);
-			Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-			userAuto.setPolicyRequestDetails(gson.toJson(autoPolicyRequest));
-			baseDao.update(userAuto);
-		} catch (EntityNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mongoDao.findAndReplace("autoHome", eq("code", autoPolicyRequest.getCode()),
+					gson.toJson(autoPolicyRequest));
+		} catch (Exception e) {
+			logger.error(e);
+			throw new RuntimeException(e);
 		}
 	}
 
-	public UserAuto getAutoPolicyDetails(String code, String lastName, String zip) {
-		UserAuto userAuto = null;
+	public Document getAutoPolicyDetails(String code, String lastName, String zip) {
 
-		BaseDao baseDao = new BaseDao();
-		Map<String, String> paramsMap = new HashMap<String, String>();
-		paramsMap.put("code", code);
-		paramsMap.put("lastName", lastName);
-		paramsMap.put("zip", zip);
+		MongoDao mongoDao = new MongoDao();
+		Bson filter = and(eq("code", code), eq("lastName", lastName), eq("address.zip", zip));
+		Document policyRequest = mongoDao.findOne(MongoCollEnum.AutoHome.toString(), filter);
 
-		userAuto = baseDao.findByNamedQuery("findAutoByCodeByLnameByZip", paramsMap, UserAuto.class, 1).get(0);
-
-		// Set id to 0
-		userAuto.setId(0);
-
-		return userAuto;
+		return policyRequest;
 
 	}
 
 	public List<UserAuto> getOpenAutoPolicy() {
 
-		// TODO Limit by agent auth
+		MongoDao mongoDao = new MongoDao();
 		List<UserAuto> userAutos = new ArrayList<UserAuto>();
 
-		BaseDao baseDao = new BaseDao();
-		String sqlQuery = "select code as code,zip as zip, status as status from user_auto";
-		List<Object[]> results = baseDao.findByNativeQuery(sqlQuery, 10);
-		for (Object[] objects : results) {
+		FindIterable<Document> policyRequests = mongoDao.find(MongoCollEnum.AutoHome.toString(), null, 10);
+
+		for (Document doc : policyRequests) {
 			UserAuto userAuto = new UserAuto();
-			userAuto.setCode((String) objects[0]);
-			userAuto.setZip((String) objects[1]);
-			userAuto.setStatus((String) objects[2]);
+			userAuto.setCode(doc.getString("code"));
+			Document address = doc.get("address", Document.class);
+			userAuto.setZip(address.getString("zip"));
+			userAuto.setStatus(doc.getString("status"));
 
 			userAutos.add(userAuto);
 		}
@@ -115,24 +100,17 @@ public class AutoPolicyService {
 
 	}
 
-	public UserAuto getAutoPolicyDetails(String code, String userRole, boolean hidePersonalInfo) {
-		UserAuto userAuto = null;
-
-		BaseDao baseDao = new BaseDao();
-		Map<String, String> paramsMap = new HashMap<String, String>();
-		paramsMap.put("code", code);
-
-		userAuto = baseDao.findByNamedQuery("findAutoByCode", paramsMap, UserAuto.class, 1).get(0);
-
-		// Set id to 0
-		userAuto.setId(0);
+	public Document getAutoPolicyDetails(String code, String userRole, boolean hidePersonalInfo) {
+		MongoDao mongoDao = new MongoDao();
+		Bson filter = eq("code", code);
+		Document policyRequest = mongoDao.findOne(MongoCollEnum.AutoHome.toString(), filter);
 
 		// Hide Personal Info
 		if (hidePersonalInfo) {
-			userAuto.anonymizePersonalData();
+			// userAuto.anonymizePersonalData();
 		}
 
-		return userAuto;
+		return policyRequest;
 
 	}
 }

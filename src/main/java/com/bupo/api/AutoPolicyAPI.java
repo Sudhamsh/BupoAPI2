@@ -10,15 +10,19 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.bson.Document;
 
 import com.bupo.beans.AutoPolicyRequest;
 import com.bupo.beans.SearchResultBean;
 import com.bupo.dao.model.UserAuto;
 import com.bupo.services.AutoPolicyService;
 import com.bupo.util.JsonUtil;
+import com.bupo.util.LogManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -28,6 +32,7 @@ import com.google.gson.JsonParser;
 public class AutoPolicyAPI {
 	AutoPolicyService autoPolicyService = new AutoPolicyService();
 	Gson gson = new Gson();
+	private LogManager logger = LogManager.getLogger(this.getClass());
 
 	@POST
 	@Consumes({ MediaType.APPLICATION_JSON })
@@ -58,7 +63,7 @@ public class AutoPolicyAPI {
 
 		try {
 			AutoPolicyService autoPolicyService = new AutoPolicyService();
-			autoPolicyService.updateAutoPolcyRequest(autoPolicyRequest);
+			autoPolicyService.updateAutoPolicyRequest(autoPolicyRequest);
 			JsonObject responseObj = new JsonObject();
 			responseObj.addProperty("uniqueCode", autoPolicyRequest.getCode());
 
@@ -73,27 +78,25 @@ public class AutoPolicyAPI {
 
 	@GET
 	@Path("/code/{code}")
+	@Produces({ MediaType.APPLICATION_JSON })
 	public Response getAutoDetailsByCode(@PathParam("code") String code) {
 		Response response = null;
-		SearchResultBean<UserAuto> resultBean = new SearchResultBean<UserAuto>();
+		SearchResultBean<Document> resultBean = new SearchResultBean<Document>();
 		resultBean.setSearchParam("code", code);
 
 		try {
-			UserAuto userAuto = autoPolicyService.getAutoPolicyDetails(code, null, true);
+			Document userAuto = autoPolicyService.getAutoPolicyDetails(code, null, true);
 			resultBean.setCount(1);
 			resultBean.getResults().add(userAuto);
 
-			// crapy work around as string contains a json. Couldn't find a better solution.
-			JsonElement jsonElement = getJsonFromResultBean(resultBean, userAuto.getPolicyRequestDetails());
-
-			response = Response.status(200).entity(jsonElement.toString()).build();
+			response = Response.status(200).entity(gson.toJson(resultBean)).build();
 		} catch (EntityNotFoundException e) {
-
+			logger.error(e);
 			resultBean.setCount(0);
 			resultBean.setMessage("No Results Found");
-			response = Response.status(400).entity(gson.toJson(resultBean)).build();
+			response = Response.status(400).entity(resultBean).build();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e);
 			resultBean.setCount(0);
 			resultBean.setMessage("Server Error");
 			response = Response.status(500).entity(gson.toJson(resultBean)).build();
@@ -119,7 +122,7 @@ public class AutoPolicyAPI {
 	public Response getAutoDetails(@QueryParam("code") String code, @QueryParam("lastName") String lastName,
 			@QueryParam("zip") String zip) {
 		Response response = null;
-		SearchResultBean<UserAuto> resultBean = new SearchResultBean<UserAuto>();
+		SearchResultBean<Document> resultBean = new SearchResultBean<Document>();
 
 		// set params
 		resultBean.setSearchParam("code", code);
@@ -127,14 +130,11 @@ public class AutoPolicyAPI {
 		resultBean.setSearchParam("zip", zip);
 
 		try {
-			UserAuto userAuto = autoPolicyService.getAutoPolicyDetails(code, lastName, zip);
+			Document userAuto = autoPolicyService.getAutoPolicyDetails(code, lastName, zip);
 			resultBean.setCount(1);
 			resultBean.getResults().add(userAuto);
 
-			// crapy work around as string contains a json. Couldn't find a better solution.
-			JsonElement jsonElement = getJsonFromResultBean(resultBean, userAuto.getPolicyRequestDetails());
-
-			response = Response.status(200).entity(jsonElement.toString()).build();
+			response = Response.status(200).entity(resultBean).build();
 		} catch (EntityNotFoundException e) {
 
 			resultBean.setCount(0);
