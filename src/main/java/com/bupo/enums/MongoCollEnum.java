@@ -1,7 +1,7 @@
 package com.bupo.enums;
 
 public enum MongoCollEnum {
-	AutoHome("autoHome");
+	AutoHome("autoHome"), User("user");
 
 	private final String name;
 

@@ -10,6 +10,14 @@ import javax.ws.rs.ext.Provider;
 @Provider
 public class CORSFilter implements ContainerResponseFilter {
 
+	static {
+		// Enable MongoDB logging in general
+		System.setProperty("DEBUG.MONGO", "true");
+
+		// Enable DB operation tracing
+		System.setProperty("DB.TRACE", "true");
+	}
+
 	@Override
 	public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException {
 		System.out.println("filter.....");

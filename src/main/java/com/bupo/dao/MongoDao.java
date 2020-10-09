@@ -23,6 +23,7 @@ public class MongoDao {
 
 		collectionMap.put("test", database.getCollection("test"));
 		collectionMap.put("autoHome", database.getCollection("autoHome"));
+		collectionMap.put("user", database.getCollection("user"));
 
 	}
 
@@ -46,7 +47,7 @@ public class MongoDao {
 	public void findAndReplace(String collectionName, Bson filter, String docStr) {
 		MongoCollection<Document> collection = collectionMap.get(collectionName);
 		Document newDoc = Document.parse(docStr);
-		collection.findOneAndUpdate(filter, newDoc);
+		collection.replaceOne(filter, newDoc);
 
 	}
 
