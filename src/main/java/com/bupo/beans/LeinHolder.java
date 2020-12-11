@@ -1,5 +1,7 @@
 package com.bupo.beans;
 
+import com.reit.beans.Address;
+
 import lombok.Getter;
 import lombok.Setter;
 

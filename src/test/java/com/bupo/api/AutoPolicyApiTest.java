@@ -16,12 +16,12 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.bupo.beans.Address;
 import com.bupo.beans.AutoDriver;
 import com.bupo.beans.AutoPolicyRequest;
 import com.bupo.enums.EducationLevel;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.reit.beans.Address;
 
 public class AutoPolicyApiTest extends JerseyTest {
 
@@ -185,7 +185,6 @@ public class AutoPolicyApiTest extends JerseyTest {
 			JsonObject responseObj = new Gson().fromJson(responseStr, JsonObject.class);
 
 			// Get
-
 			String uri = String.format("/auto/search/status/open");
 
 			response = target(uri).request(MediaType.APPLICATION_JSON).get();

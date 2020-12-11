@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -24,6 +25,12 @@ public class MongoDao {
 		collectionMap.put("test", database.getCollection("test"));
 		collectionMap.put("autoHome", database.getCollection("autoHome"));
 		collectionMap.put("user", database.getCollection("user"));
+		collectionMap.put("quote", database.getCollection("quote"));
+		collectionMap.put("quoteSummary", database.getCollection("quoteSummary"));
+		collectionMap.put("quoteDetail", database.getCollection("quoteDetail"));
+		collectionMap.put("property", database.getCollection("property"));
+		collectionMap.put("zipMetrics", database.getCollection("zipMetrics"));
+		collectionMap.put("companyMetrics", database.getCollection("companyMetrics"));
 
 	}
 
@@ -35,13 +42,14 @@ public class MongoDao {
 		collection.insertOne(doc);
 	}
 
-	public void insert(String collectionName, String docStr) {
+	public ObjectId insert(String collectionName, String docStr) {
 		MongoCollection<Document> collection = collectionMap.get(collectionName);
 		if (collection == null) {
 			throw new RuntimeException("Collection Not Found");
 		}
 		Document doc = Document.parse(docStr);
 		collection.insertOne(doc);
+		return (ObjectId) doc.get("_id");
 	}
 
 	public void findAndReplace(String collectionName, Bson filter, String docStr) {

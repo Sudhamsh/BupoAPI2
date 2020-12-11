@@ -10,12 +10,12 @@ import org.bson.Document;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.bupo.beans.Address;
 import com.bupo.beans.AutoDriver;
 import com.bupo.beans.AutoPolicyRequest;
 import com.bupo.dao.model.UserAuto;
 import com.bupo.enums.EducationLevel;
 import com.google.gson.Gson;
+import com.reit.beans.Address;
 
 public class AutoPolicyServiceTest {
 

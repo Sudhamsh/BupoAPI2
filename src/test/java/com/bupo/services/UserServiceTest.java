@@ -4,7 +4,7 @@ import org.bson.Document;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.bupo.beans.User;
+import com.bupo.beans.UserRequestBean;
 import com.google.gson.JsonObject;
 
 public class UserServiceTest {
@@ -13,7 +13,7 @@ public class UserServiceTest {
 	@Test
 	public void createUser_hp() {
 
-		User user = populateUserObject();
+		UserRequestBean user = populateUserObject();
 
 		try {
 			userService.createUser(user);
@@ -23,12 +23,13 @@ public class UserServiceTest {
 
 	}
 
-	private User populateUserObject() {
+	private UserRequestBean populateUserObject() {
 
-		User user = new User();
+		UserRequestBean user = new UserRequestBean();
 		user.setDisplayName("displayName");
 		user.setEmail(System.currentTimeMillis() + "@a.com");
-		user.setPasswordTemp(true);
+		user.setPassword(String.valueOf(System.currentTimeMillis()));
+
 		user.setSettings(new JsonObject());
 
 		return user;
@@ -52,7 +53,7 @@ public class UserServiceTest {
 
 		try {
 			// create
-			User user = populateUserObject();
+			UserRequestBean user = populateUserObject();
 			userService.createUser(user);
 
 			// find
@@ -66,7 +67,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void getUser_cs() {
+	public void getUser_cc() {
 
 		try {
 
@@ -82,7 +83,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void updateUser_cs() {
+	public void updateUser_cc() {
 
 	}
 
@@ -91,7 +92,7 @@ public class UserServiceTest {
 		String newDispName = "NewDisplayName";
 		try {
 			// create
-			User user = populateUserObject();
+			UserRequestBean user = populateUserObject();
 			userService.createUser(user);
 
 			// update
@@ -107,6 +108,36 @@ public class UserServiceTest {
 			e.printStackTrace();
 			Assert.fail("Exception during user update. " + e.getMessage());
 		}
+	}
+
+	@Test
+	public void isUserValid_hp() {
+
+		// create
+		UserRequestBean user = populateUserObject();
+		userService.createUser(user);
+
+		// check if the user is valid
+		boolean isUserValid = userService.isUserValid(user.getEmail(), user.getPassword());
+
+		Assert.assertTrue("Newly created user came as invalid.", isUserValid);
+
+	}
+
+	@Test
+	public void isUserValid_cc() {
+		// check if the user is valid
+		boolean isUserValid = userService.isUserValid("a@a.com", String.valueOf(System.currentTimeMillis()));
+
+		Assert.assertFalse("Random credentials worked ;)", isUserValid);
+
+		try {
+			userService.isUserValid(null, String.valueOf(System.currentTimeMillis()));
+			Assert.fail("Didn't get an exception on a null user find");
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
 	}
 
 }

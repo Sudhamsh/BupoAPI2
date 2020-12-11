@@ -21,12 +21,12 @@ import com.bupo.beans.AutoPolicyRequest;
 import com.bupo.beans.SearchResultBean;
 import com.bupo.dao.model.UserAuto;
 import com.bupo.services.AutoPolicyService;
-import com.bupo.util.JsonUtil;
 import com.bupo.util.LogManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.reit.util.JsonUtil;
 
 @Path("/auto")
 public class AutoPolicyAPI {
@@ -134,7 +134,7 @@ public class AutoPolicyAPI {
 			resultBean.setCount(1);
 			resultBean.getResults().add(userAuto);
 
-			response = Response.status(200).entity(resultBean).build();
+			response = Response.status(200).entity(gson.toJson(resultBean)).build();
 		} catch (EntityNotFoundException e) {
 
 			resultBean.setCount(0);

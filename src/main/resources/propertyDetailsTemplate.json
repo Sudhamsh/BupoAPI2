@@ -1,0 +1,35 @@
+{
+	"location":{
+		"fullAddress":"",
+		"firstLine":"",
+		"secondLine":"",
+		"state":"",
+		"county":"",
+		"zip":12345	
+	},
+	"guaranteeDetails":{
+		"guarantee":"",
+		"hasPersonelGuarantee":false
+	},
+	"propertyDetails":{
+		"numberOfTenants": 0
+	},
+	"analysisMetrics":{
+		"cap":"",
+		"remainingLease":0.0,
+		"pricePerSqft":"",
+		"rentPersqft":"",
+		"zipPopulation":"",
+		"medianIncome":"",
+		"nextClosestCompetitor":"",
+		"ispiublicTraded":false,
+		"publicTradingMetrics":{
+		},
+		"annualReturn":10
+	},
+	"tenantDetails":{
+		"industry":""
+	}
+	
+	
+}

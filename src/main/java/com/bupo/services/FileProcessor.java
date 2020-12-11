@@ -12,10 +12,10 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
 import com.bupo.dao.BaseDao;
 import com.bupo.dao.model.UserAuto;
-import com.bupo.util.JsonUtil;
 import com.bupo.util.SessionUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.reit.util.JsonUtil;
 
 public class FileProcessor {
 

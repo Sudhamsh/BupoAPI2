@@ -1,7 +1,8 @@
 package com.bupo.enums;
 
 public enum MongoCollEnum {
-	AutoHome("autoHome"), User("user");
+	AutoHome("autoHome"), User("user"), Quote("quote"), QuoteDetail("quoteDetail"), Property("property"),
+	ZipMetrics("zipMetrics"), CompanyMetrics("companyMetrics");
 
 	private final String name;
 
