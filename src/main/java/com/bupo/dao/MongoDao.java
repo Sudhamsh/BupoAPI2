@@ -69,10 +69,27 @@ public class MongoDao {
 
 	}
 
+	public <T> FindIterable<T> find(String collectionName, Class<T> clazz, Bson filter, int limit) {
+		MongoCollection<Document> collection = collectionMap.get(collectionName);
+		if (filter == null) {
+			return collection.find(clazz).limit(limit);
+		}
+
+		return collection.find(filter, clazz).limit(limit);
+
+	}
+
 	public Document findOne(String collectionName, Bson filter) {
 
 		MongoCollection<Document> collection = collectionMap.get(collectionName);
 		return collection.find(filter).first();
+
+	}
+
+	public <T> T findOne(String collectionName, Class<T> clazz, Bson filter) {
+
+		MongoCollection<Document> collection = collectionMap.get(collectionName);
+		return collection.find(filter, clazz).first();
 
 	}
 
