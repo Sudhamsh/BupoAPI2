@@ -1,7 +1,6 @@
 package com.reit.beans;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -24,7 +23,7 @@ public class PropertyBean {
 
 	private String status = "New";
 
-	private boolean isDataMissing = false;
+	private Boolean isDataMissing = null;
 
 	private List<String> missingData = new ArrayList<String>();
 
@@ -32,7 +31,7 @@ public class PropertyBean {
 
 	private List<String> consList = new ArrayList<String>();
 
-	private Date reitCreationDate = new Date();
+	// private Date reitCreationDate = new Date();
 
 	private TenantDetails tenantDetails;
 
@@ -84,6 +83,6 @@ public class PropertyBean {
 	private float rentPerSqft;
 
 	@CsvBindByName(column = "Opportunity Zone")
-	private boolean opportunityZone;
+	private Boolean opportunityZone;
 
 }

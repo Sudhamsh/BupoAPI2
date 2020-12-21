@@ -11,6 +11,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.bupo.enums.MongoCollEnum;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
+import com.reit.beans.PropertyBean;
 
 public class MongoDaoTest {
 	final Document doc = new Document("name", "MongoDB").append("type", "database").append("count", 1)
@@ -19,9 +22,14 @@ public class MongoDaoTest {
 
 	@Test
 	public void insertTest_hp() {
-		MongoDao mongoDao = new MongoDao();
+		try {
+			MongoDao mongoDao = new MongoDao();
 
-		mongoDao.insert("test", doc);
+			mongoDao.insert("test", doc);
+		} catch (Exception e) {
+			e.getStackTrace();
+		}
+
 	}
 
 	@Test
@@ -44,6 +52,22 @@ public class MongoDaoTest {
 		Document policyRequest = mongoDao.findOne(MongoCollEnum.AutoHome.toString(), filter);
 		System.out.println(policyRequest.toString());
 		Assert.assertNotNull("Search failed", policyRequest);
+
+	}
+
+	@Test
+	public void findOneBean() {
+		MongoDao mongoDao = new MongoDao();
+		try {
+			FindIterable<PropertyBean> policyRequests = mongoDao.find(MongoCollEnum.Property.toString(),
+					PropertyBean.class, Filters.gt("cap", 3), 10);
+			for (PropertyBean property : policyRequests) {
+				System.out.println(property.getAskingPrice());
+			}
+			Assert.assertNotNull("Search failed", policyRequests);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 }

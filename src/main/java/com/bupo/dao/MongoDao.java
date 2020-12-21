@@ -1,21 +1,37 @@
 package com.bupo.dao;
 
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.google.common.base.Preconditions;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoDao {
-	private static MongoClientURI connectionString = new MongoClientURI("mongodb://localhost:27017");
-	private static MongoClient mongoClient = new MongoClient(connectionString);
+
+	static ConnectionString connectionString = new ConnectionString("mongodb://localhost:27017");
+	static CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
+	static CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+			pojoCodecRegistry);
+	static MongoClientSettings clientSettings = MongoClientSettings.builder().applyConnectionString(connectionString)
+			.codecRegistry(codecRegistry).build();
+	private static MongoClient mongoClient = MongoClients.create(clientSettings);
 	private static MongoDatabase database = mongoClient.getDatabase("mydb");
 
 	private static Map<String, MongoCollection<Document>> collectionMap = new HashMap<String, MongoCollection<Document>>();
@@ -70,12 +86,21 @@ public class MongoDao {
 	}
 
 	public <T> FindIterable<T> find(String collectionName, Class<T> clazz, Bson filter, int limit) {
-		MongoCollection<Document> collection = collectionMap.get(collectionName);
+		MongoCollection<T> collection = database.getCollection(collectionName, clazz);
 		if (filter == null) {
 			return collection.find(clazz).limit(limit);
 		}
 
 		return collection.find(filter, clazz).limit(limit);
+
+	}
+
+	public <T> ArrayList<T> aggregate(String collectionName, Class<T> clazz, Bson filter, int limit) {
+		Preconditions.checkNotNull(filter, "Filter is null");
+
+		MongoCollection<T> collection = database.getCollection(collectionName, clazz);
+
+		return collection.aggregate(Arrays.asList(filter), clazz).into(new ArrayList<>());
 
 	}
 

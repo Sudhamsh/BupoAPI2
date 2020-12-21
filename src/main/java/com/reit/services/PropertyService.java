@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,10 +19,14 @@ import com.bupo.util.LogManager;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.reit.beans.Address;
 import com.reit.beans.PropertyBean;
+import com.reit.beans.PropertyResultsBean;
+import com.reit.beans.SearchFilter;
 
 public class PropertyService {
 	private LogManager logger = LogManager.getLogger(this.getClass());
@@ -51,9 +56,92 @@ public class PropertyService {
 
 		MongoDao mongoDao = new MongoDao();
 		Bson filter = eq("address.fullAddress", fullAddress);
+
 		Document policyRequest = mongoDao.findOne(MongoCollEnum.Property.toString(), filter);
 
 		return policyRequest;
+
+	}
+
+	public List<PropertyResultsBean> findMatchingProperties(List<SearchFilter> filters) {
+		List<PropertyResultsBean> resultsBeans = new ArrayList<PropertyResultsBean>();
+		Preconditions.checkNotNull(filters, "Search Filters is null");
+		Preconditions.checkArgument(filters.size() != 0, "Search Filters is empty");
+
+		Bson filter = null;
+		List<Bson> fieldList = new ArrayList();
+		MongoDao mongoDao = new MongoDao();
+
+		// Create mongo filter
+		for (SearchFilter searchFilter : filters) {
+			switch (searchFilter.getFieldName()) {
+			case "cap":
+				fieldList.add(getBsonFilter(searchFilter));
+				break;
+			case "ASKING_PRICE":
+				fieldList.add(getBsonFilter(searchFilter));
+				break;
+			case "SCORE":
+				fieldList.add(getBsonFilter(searchFilter));
+				break;
+			case "REMAINING_TERM":
+				fieldList.add(getBsonFilter(searchFilter));
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		Preconditions.checkNotNull(fieldList.size(), "Hmm. Filters is empty");
+
+		List<PropertyBean> results = mongoDao.aggregate(MongoCollEnum.Property.toString(), PropertyBean.class,
+				Aggregates.match(Filters.and(fieldList)), 500);
+
+		System.out.println("results size: " + results.toString());
+
+		resultsBeans = convertDocs(results);
+
+		return resultsBeans;
+
+	}
+
+	public List<PropertyResultsBean> convertDocs(List<PropertyBean> results) {
+		List<PropertyResultsBean> resultsBeans = new ArrayList<PropertyResultsBean>();
+
+		for (PropertyBean propertyBean : results) {
+			PropertyResultsBean bean = new PropertyResultsBean();
+			// bean.setAskingPrice(propertyBean.getAskingPrice());
+			System.out.println("propertyBean : " + propertyBean.getAskingPrice());
+
+			resultsBeans.add(bean);
+
+		}
+
+		return resultsBeans;
+	}
+
+	public Bson getBsonFilter(SearchFilter searchFilter) {
+		Preconditions.checkNotNull(searchFilter, "Search Filter is null");
+		Preconditions.checkNotNull(searchFilter.getFieldName(), "Search Filter filed name is null");
+
+		Bson filter = null;
+		switch (searchFilter.getOperator()) {
+		case EQUALS:
+			filter = Filters.eq(searchFilter.getFieldName(), searchFilter.getFieldValue());
+			break;
+		case GREATER_THAN:
+			filter = Filters.gte(searchFilter.getFieldName(), searchFilter.getFieldValue());
+			break;
+		case LESS_THAN:
+			filter = Filters.lte(searchFilter.getFieldName(), searchFilter.getFieldValue());
+			break;
+
+		default:
+			break;
+		}
+
+		return filter;
 
 	}
 
@@ -106,6 +194,24 @@ public class PropertyService {
 			propertyBean.setRentPerSqft(propertyBean.getNoi() / propertyBean.getSqFt());
 		}
 
+		// missing data
+		validateField(propertyBean, propertyBean.getSqFt(), "Square Feet");
+		validateField(propertyBean, propertyBean.getCap(), "CAP");
+		validateField(propertyBean, propertyBean.getNoi(), "NOI");
+		validateField(propertyBean, propertyBean.getAskingPrice(), "Asking price");
+
+	}
+
+	static void validateField(PropertyBean propertyBean, float value, String fieldName) {
+		Preconditions.checkNotNull(propertyBean, "PropertyBean is null");
+		Preconditions.checkNotNull(propertyBean.getMissingData(), "PropertyBean missing data should be initialized");
+		Preconditions.checkNotNull(value, "Value to be checked is null");
+		Preconditions.checkNotNull(fieldName, "fieldName is null");
+
+		if (value == 0) {
+			propertyBean.setIsDataMissing(new Boolean(true));
+			propertyBean.getMissingData().add(fieldName + " is missing");
+		}
 	}
 
 	static void populateFullAddress(PropertyBean propertyBean) {
@@ -116,9 +222,7 @@ public class PropertyService {
 
 			address.setFullAddress(fullLine);
 			propertyBean.setAddress(address);
-
 		}
-
 	}
 
 }
