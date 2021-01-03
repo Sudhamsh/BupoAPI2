@@ -34,10 +34,6 @@ public class ZipService {
 		Preconditions.checkNotNull(zipBean, "ZipBean is null");
 		Preconditions.checkNotNull(zipBean.getZip(), "ZipBean zip value is null");
 
-		// check if the record exists
-		// Preconditions.checkArgument(getZipRecordy(zipBean.getZip()) == null, "Zip
-		// record exists in data store");
-
 		try {
 			// TODO - Check if property exists before create.
 			mongoDao.insert(MongoCollEnum.ZipMetrics.toString(), gson.toJson(zipBean));
@@ -45,6 +41,17 @@ public class ZipService {
 			logger.error(e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	public ZipBean findZipRecord(int zip) {
+		Preconditions.checkNotNull(zip, "zip is null");
+
+		ZipBean zipBean = null;
+		Bson filter = eq("zip", zip);
+		zipBean = mongoDao.findOne(MongoCollEnum.ZipMetrics.toString(), ZipBean.class, filter);
+
+		return zipBean;
+
 	}
 
 	// Replaces the whole bean, retrieve and update the bean if you want incremental

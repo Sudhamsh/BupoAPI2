@@ -4,12 +4,14 @@ import static com.mongodb.client.model.Filters.eq;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -27,6 +29,7 @@ import com.reit.beans.Address;
 import com.reit.beans.PropertyBean;
 import com.reit.beans.PropertyResultsBean;
 import com.reit.beans.SearchFilter;
+import com.reit.util.DataUtils;
 
 public class PropertyService {
 	private LogManager logger = LogManager.getLogger(this.getClass());
@@ -100,25 +103,71 @@ public class PropertyService {
 
 		System.out.println("results size: " + results.toString());
 
-		resultsBeans = convertDocs(results);
+		// Convert docs to results bean to hide unrequired properties
+		resultsBeans = convertToResultsBean(results);
+
+		normalizeData(resultsBeans);
 
 		return resultsBeans;
 
 	}
 
-	public List<PropertyResultsBean> convertDocs(List<PropertyBean> results) {
+	public List<PropertyResultsBean> convertToResultsBean(List<PropertyBean> results) {
 		List<PropertyResultsBean> resultsBeans = new ArrayList<PropertyResultsBean>();
 
 		for (PropertyBean propertyBean : results) {
-			PropertyResultsBean bean = new PropertyResultsBean();
-			// bean.setAskingPrice(propertyBean.getAskingPrice());
-			System.out.println("propertyBean : " + propertyBean.getAskingPrice());
 
-			resultsBeans.add(bean);
+			try {
+				PropertyResultsBean bean = new PropertyResultsBean();
+				BeanUtils.copyProperties(bean, propertyBean);
+
+				resultsBeans.add(bean);
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				logger.error(e);
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				logger.error(e);
+			}
 
 		}
 
 		return resultsBeans;
+	}
+
+	public void normalizeData(List<PropertyResultsBean> resultsBeans) {
+		double[] remainingTerm = new double[resultsBeans.size()];
+		double[] cap = new double[resultsBeans.size()];
+		double[] pricePerSqft = new double[resultsBeans.size()];
+		double[] rentPerSqft = new double[resultsBeans.size()];
+
+		double[] norRemainingTerm = new double[resultsBeans.size()];
+		double[] norCap = new double[resultsBeans.size()];
+		double[] norPricePerSqft = new double[resultsBeans.size()];
+		double[] norRentPerSqft = new double[resultsBeans.size()];
+
+		// normalization inputs is a double array :)
+		for (int i = 0; i < resultsBeans.size(); i++) {
+			remainingTerm[i] = resultsBeans.get(i).getRemainingTerm();
+			cap[i] = resultsBeans.get(i).getCap();
+			pricePerSqft[i] = resultsBeans.get(i).getPricePerSqft();
+			rentPerSqft[i] = resultsBeans.get(i).getRentPerSqft();
+		}
+
+		// get normalized data
+		norRemainingTerm = DataUtils.normalizeData(remainingTerm);
+		norCap = DataUtils.normalizeData(cap);
+		norPricePerSqft = DataUtils.normalizeData(pricePerSqft);
+		norRentPerSqft = DataUtils.normalizeData(rentPerSqft);
+
+		// compute weight
+		for (int i = 0; i < resultsBeans.size(); i++) {
+			double score = norRemainingTerm[i] + norCap[i] - norPricePerSqft[i] - norRentPerSqft[i];
+			resultsBeans.get(i).setWeightedScore(score);
+		}
+
 	}
 
 	public Bson getBsonFilter(SearchFilter searchFilter) {

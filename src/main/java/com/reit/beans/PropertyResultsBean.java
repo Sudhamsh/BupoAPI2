@@ -14,8 +14,14 @@ public class PropertyResultsBean {
 
 	private String name;
 	private float remainingTerm;
+	private float norRemainingTerm;
 	private float cap;
-	private float weightedScore;
+	private float norCap;
+	private double weightedScore;
 	private float askingPrice;
+	private float pricePerSqft;
+	private float norPricePerSqft;
+	private float rentPerSqft;
+	private float norRentPerSqft;
 
 }
