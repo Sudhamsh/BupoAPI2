@@ -64,7 +64,6 @@ public class UserApi {
 		Response response = null;
 
 		try {
-
 			response = Response.status(201).build();
 		} catch (Exception e) {
 			response = Response.serverError().build();

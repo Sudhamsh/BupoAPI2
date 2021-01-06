@@ -47,6 +47,8 @@ public class MongoDao {
 		collectionMap.put("property", database.getCollection("property"));
 		collectionMap.put("zipMetrics", database.getCollection("zipMetrics"));
 		collectionMap.put("companyMetrics", database.getCollection("companyMetrics"));
+		collectionMap.put("saasTenant", database.getCollection("saasTenant"));
+		collectionMap.put("teams", database.getCollection("teams"));
 
 	}
 
