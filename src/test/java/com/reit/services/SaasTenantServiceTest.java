@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import com.reit.beans.saas.tenant.SaasTenantBean;
 import com.reit.beans.saas.tenant.Team;
-import com.reit.beans.saas.tenant.User;
+import com.reit.beans.saas.tenant.UserContact;
 
 public class SaasTenantServiceTest {
 
@@ -65,7 +65,8 @@ public class SaasTenantServiceTest {
 			ObjectId tenantId = tenantService.createTenant();
 
 			Team team = new Team("dev_team_" + currentTimeMillis(), "a@a.com", new ArrayList<>(), tenantId);
-			User user = new User("dev_username_" + currentTimeMillis(), "fName", "lName", "a@a.com", null, null);
+			UserContact user = new UserContact("dev_username_" + currentTimeMillis(), "fName", "lName", "a@a.com", null,
+					null);
 			team.getMembers().add(user);
 			ObjectId id = tenantService.createTeam(team);
 			Assert.assertNotNull("Object Id came as null", id);

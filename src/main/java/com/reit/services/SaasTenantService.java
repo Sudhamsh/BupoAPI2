@@ -22,7 +22,6 @@ import com.mongodb.client.model.Filters;
 import com.reit.beans.saas.tenant.Department;
 import com.reit.beans.saas.tenant.SaasTenantBean;
 import com.reit.beans.saas.tenant.Team;
-import com.reit.beans.saas.tenant.User;
 
 import lombok.NoArgsConstructor;
 
@@ -149,19 +148,6 @@ public class SaasTenantService {
 		}
 
 		return results.get(0);
-	}
-
-	public User getUser(List<User> users, String username) {
-		Preconditions.checkNotNull(users, "Users is null");
-		Preconditions.checkNotNull(username, "Username value is null");
-
-		for (User user : users) {
-			if (username.equals(user.getUsername())) {
-				return user;
-			}
-		}
-
-		return null;
 	}
 
 }

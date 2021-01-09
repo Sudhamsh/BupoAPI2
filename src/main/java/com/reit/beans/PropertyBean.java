@@ -18,6 +18,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PropertyBean {
+
+	private int version = 1;
+
 	@CsvRecurse
 	private Address address;
 
@@ -39,6 +42,9 @@ public class PropertyBean {
 
 	@CsvBindByName(column = "Property Name")
 	private String propertyName;
+
+	@CsvBindByName(column = "External URL")
+	private String externalLink;
 
 	@CsvBindByName(column = "Property Status")
 	private String propertyStatus;

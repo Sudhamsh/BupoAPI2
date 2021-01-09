@@ -1,7 +1,9 @@
 package com.bupo.beans;
 
+import org.bson.types.ObjectId;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.google.gson.JsonObject;
+import com.reit.beans.Settings;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,11 +14,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User {
+	private ObjectId objectId;
 	private String displayName;
 	private String password;
-	private JsonObject settings;
 	private boolean isPasswordTemp;
 	private String email;
 	private int shares;
+	private Settings settings;
 
 }

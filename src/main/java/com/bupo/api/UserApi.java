@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.bupo.beans.User;
 import com.bupo.beans.UserRequestBean;
+import com.bupo.exceptions.ObjectExists;
 import com.bupo.services.UserService;
 import com.google.common.base.Preconditions;
 
@@ -21,13 +22,15 @@ public class UserApi {
 
 	@POST
 	@Consumes({ MediaType.APPLICATION_JSON })
-	public Response createUser(@NotNull(message = "API payload can't be null") UserRequestBean user) {
+	public Response createUser(UserRequestBean user) {
 		Response response = null;
 
 		try {
 			userService.createUser(user);
 
 			response = Response.status(201).build();
+		} catch (ObjectExists e) {
+			response = Response.status(Status.CONFLICT).entity(Status.NO_CONTENT).build();
 		} catch (Exception e) {
 			response = Response.serverError().build();
 		}
@@ -48,7 +51,7 @@ public class UserApi {
 			if (isValid) {
 				response = Response.status(200).build();
 			} else {
-				response = Response.status(Status.UNAUTHORIZED).build();
+				response = Response.status(Status.UNAUTHORIZED).entity("{}").build();
 			}
 		} catch (Exception e) {
 			response = Response.serverError().build();
@@ -64,7 +67,7 @@ public class UserApi {
 		Response response = null;
 
 		try {
-			response = Response.status(201).build();
+			response = Response.status(200).build();
 		} catch (Exception e) {
 			response = Response.serverError().build();
 		}

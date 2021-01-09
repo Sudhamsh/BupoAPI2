@@ -13,6 +13,8 @@ import lombok.Setter;
 public class PropertyResultsBean {
 
 	private String name;
+	private String status;
+	private String externalLink;
 	private float remainingTerm;
 	private float norRemainingTerm;
 	private float cap;
@@ -23,5 +25,12 @@ public class PropertyResultsBean {
 	private float norPricePerSqft;
 	private float rentPerSqft;
 	private float norRentPerSqft;
+
+	// zip data fields
+	private int zip;
+	private float population;
+	private float norPopulation;
+	private float income;
+	private float norIncome;
 
 }

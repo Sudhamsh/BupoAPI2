@@ -23,7 +23,8 @@ import com.reit.services.PropertyService;
 public class PropertyAPI {
 	private LogManager logger = LogManager.getLogger(this.getClass());
 	private PropertyService propertyService = new PropertyService();
-	private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+	private Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().setDateFormat("yyyy-MM-dd").create();
+	// GsonBuilder.serializeSpecialFloatingPointValues()
 
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
@@ -33,12 +34,20 @@ public class PropertyAPI {
 
 		try {
 			List<SearchFilter> filters = new ArrayList<SearchFilter>();
-			SearchFilter<Double> filter = new SearchFilter("cap", 3, FilterOperator.GREATER_THAN);
+			SearchFilter<String> filter = new SearchFilter("status", "New", FilterOperator.EQUALS);
 			filters.add(filter);
+
+			SearchFilter<Double> remainingFilter = new SearchFilter("remainingTerm", 5, FilterOperator.GREATER_THAN);
+			filters.add(remainingFilter);
+
 			List<PropertyResultsBean> properties = propertyService.findMatchingProperties(filters);
+			System.out.println("Si" + properties.size());
+			System.out.println("data" + gson.toJson(properties));
 
 			resultBean.setCount(1);
 			resultBean.setResults(properties);
+
+			System.out.println("data 1" + gson.toJson(resultBean));
 
 			response = Response.status(200).entity(gson.toJson(resultBean)).build();
 		} catch (EntityNotFoundException e) {
@@ -47,6 +56,7 @@ public class PropertyAPI {
 			resultBean.setMessage("No Results Found");
 			response = Response.status(400).entity(resultBean).build();
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error(e);
 			resultBean.setCount(0);
 			resultBean.setMessage("Server Error");

@@ -60,8 +60,12 @@ public class PropertyServiceTest {
 		try {
 			float cap = 3;
 			List<SearchFilter> filters = new ArrayList<SearchFilter>();
-			SearchFilter<Double> filter = new SearchFilter("cap", 3, FilterOperator.GREATER_THAN);
+			SearchFilter<String> filter = new SearchFilter("status", "New", FilterOperator.EQUALS);
 			filters.add(filter);
+
+			SearchFilter<Double> remainingFilter = new SearchFilter("remainingTerm", 5, FilterOperator.GREATER_THAN);
+			filters.add(remainingFilter);
+
 			List<PropertyResultsBean> properties = propertyService.findMatchingProperties(filters);
 			System.out.println("properties size : " + properties.size());
 			Assert.assertTrue("Couldn't find properties with cap: " + cap, properties.size() > 0);

@@ -14,7 +14,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ZipBean {
 	private int zip;
-	private Map<Integer, IncomeBean> incomes;
-	private Map<Integer, PopulationBean> populations;
+	private Map<String, IncomeBean> incomes;
+	private Map<String, PopulationBean> populations;
 
 }

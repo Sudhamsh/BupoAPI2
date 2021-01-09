@@ -1,11 +1,14 @@
 package com.bupo.services;
 
-import org.bson.Document;
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.beanutils.BeanUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.bupo.beans.User;
 import com.bupo.beans.UserRequestBean;
-import com.google.gson.JsonObject;
+import com.bupo.exceptions.ObjectExists;
 
 public class UserServiceTest {
 	UserService userService = new UserService();
@@ -13,24 +16,25 @@ public class UserServiceTest {
 	@Test
 	public void createUser_hp() {
 
-		UserRequestBean user = populateUserObject();
+		User user = populateUserObject();
 
 		try {
-			userService.createUser(user);
+			UserRequestBean userBean = new UserRequestBean();
+			BeanUtils.copyProperties(userBean, user);
+			userService.createUser(userBean);
 		} catch (Exception e) {
+			e.printStackTrace();
 			Assert.fail("Create User failed ;)");
 		}
 
 	}
 
-	private UserRequestBean populateUserObject() {
+	public User populateUserObject() {
 
-		UserRequestBean user = new UserRequestBean();
+		User user = new User();
 		user.setDisplayName("displayName");
 		user.setEmail(System.currentTimeMillis() + "@a.com");
 		user.setPassword(String.valueOf(System.currentTimeMillis()));
-
-		user.setSettings(new JsonObject());
 
 		return user;
 
@@ -53,11 +57,12 @@ public class UserServiceTest {
 
 		try {
 			// create
-			UserRequestBean user = populateUserObject();
-			userService.createUser(user);
+			User user = populateUserObject();
+			UserRequestBean userBean = new UserRequestBean();
+			userService.createUser(userBean);
 
 			// find
-			Document userDoc = userService.getUserByEmail(user.getEmail());
+			User userDoc = userService.getUserByEmail(user.getEmail());
 			System.out.println("userDoc: " + userDoc);
 
 		} catch (Exception e) {
@@ -72,7 +77,7 @@ public class UserServiceTest {
 		try {
 
 			// find
-			Document userDoc = userService.getUserByEmail(System.currentTimeMillis() + "@a.com");
+			User userDoc = userService.getUserByEmail(System.currentTimeMillis() + "@a.com");
 			System.out.println("userDoc: " + userDoc);
 			Assert.assertTrue("Found user with a random email. Coincidence ?", userDoc == null);
 
@@ -92,18 +97,19 @@ public class UserServiceTest {
 		String newDispName = "NewDisplayName";
 		try {
 			// create
-			UserRequestBean user = populateUserObject();
-			userService.createUser(user);
+			User user = populateUserObject();
+			UserRequestBean userBean = new UserRequestBean();
+			userService.createUser(userBean);
 
 			// update
 			user.setDisplayName(newDispName);
 			userService.updateUser(user);
 
 			// find and validate
-			Document userDoc = userService.getUserByEmail(user.getEmail());
-			System.out.println(userDoc);
+			User userDoc = userService.getUserByEmail(user.getEmail());
+			System.out.println(user);
 			Assert.assertTrue("Failed to update the displayName in user object",
-					newDispName.equals(userDoc.getString("displayName")));
+					newDispName.equals(userDoc.getDisplayName()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail("Exception during user update. " + e.getMessage());
@@ -111,11 +117,14 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void isUserValid_hp() {
+	public void isUserValid_hp() throws ObjectExists, IllegalAccessException, InvocationTargetException {
 
 		// create
-		UserRequestBean user = populateUserObject();
-		userService.createUser(user);
+		User user = populateUserObject();
+
+		UserRequestBean userBean = new UserRequestBean();
+		BeanUtils.copyProperties(userBean, user);
+		userService.createUser(userBean);
 
 		// check if the user is valid
 		boolean isUserValid = userService.isUserValid(user.getEmail(), user.getPassword());

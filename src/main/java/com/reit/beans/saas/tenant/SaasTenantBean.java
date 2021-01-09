@@ -12,6 +12,6 @@ import lombok.Setter;
 public class SaasTenantBean {
 	private String _id;
 	private String tenantName;
-	private User orgPrimaryContact;
+	private UserContact orgPrimaryContact;
 
 }

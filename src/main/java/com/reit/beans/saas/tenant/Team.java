@@ -17,6 +17,6 @@ import lombok.Setter;
 public class Team {
 	private String name;
 	private String teamEmail;
-	private List<User> members = new ArrayList<>();
+	private List<UserContact> members = new ArrayList<>();
 	private ObjectId tenantId;
 }

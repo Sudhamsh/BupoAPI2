@@ -3,6 +3,7 @@ package com.bupo.services;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.gson.Gson;
 import com.reit.beans.ZipBean;
 import com.reit.services.ZipService;
 
@@ -26,13 +27,14 @@ public class ZipServiceTest {
 	public void getZipRecord_hp() {
 
 		try {
-			int zip = 999999;
+			int zip = 94539;
 			// Create then search
 			ZipBean zipBean = new ZipBean();
 			zipBean.setZip(zip);
 			zipservice.createZipRecord(zipBean);
 
 			zipBean = zipservice.findZipRecord(zip);
+			System.out.println(new Gson().toJson(zipBean));
 			Assert.assertNotNull("Zip Service failed to find the record for zip : " + zip, zipBean);
 
 		} catch (Exception e) {

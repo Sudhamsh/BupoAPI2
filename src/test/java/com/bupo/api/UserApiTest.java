@@ -17,7 +17,9 @@ import com.bupo.beans.UserRequestBean;
 public class UserApiTest extends JerseyTest {
 	@Override
 	protected Application configure() {
-		return new ResourceConfig(UserApi.class);
+
+		ResourceConfig resourceConfig = new ResourceConfig(UserApi.class);
+		return resourceConfig;
 	}
 
 	@Test

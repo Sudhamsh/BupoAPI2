@@ -12,33 +12,30 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.reit.api.PropertyAPI;
+import com.reit.api.SettingsApi;
 
-public class PropertyApiTest extends JerseyTest {
+public class SettingsApiTest extends JerseyTest {
+
 	@Override
 	protected Application configure() {
-		return new ResourceConfig(PropertyAPI.class);
+
+		ResourceConfig resourceConfig = new ResourceConfig(SettingsApi.class);
+		return resourceConfig;
 	}
 
 	@Test
-	public void getProperties_happy_path() {
+	public void addFav_hp() {
 
 		try {
-
-			Response response = target("/reit/property").request(MediaType.APPLICATION_JSON)
-					.post(Entity.entity(null, MediaType.APPLICATION_JSON));
-			if (response == null) {
-				Assert.fail("Auto Request creation failed.");
-			}
-			String responseStr = (String) response.readEntity(String.class);
-			System.out.println("responseStr: " + responseStr);
+			Response response = target("reit/settings/propertyId/1234").request(MediaType.APPLICATION_JSON)
+					.put(Entity.entity("{}", MediaType.APPLICATION_JSON));
+			System.out.println(response.getStatus());
 
 			assertEquals("Http Response should be 200 ", 200, response.getStatus());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail("Failed with an exception");
 		}
-
 	}
 
 }

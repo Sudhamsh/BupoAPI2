@@ -3,18 +3,24 @@ package com.bupo.services;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
+import java.util.List;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import com.bupo.beans.User;
 import com.bupo.beans.UserRequestBean;
 import com.bupo.dao.MongoDao;
 import com.bupo.enums.MongoCollEnum;
+import com.bupo.exceptions.ObjectExists;
 import com.bupo.util.LogManager;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mongodb.client.model.Aggregates;
+import com.reit.beans.saas.tenant.UserContact;
 
 public class UserService {
 	private LogManager logger = LogManager.getLogger(this.getClass());
@@ -26,21 +32,28 @@ public class UserService {
 	 * 
 	 * @param user
 	 */
-	public void createUser(UserRequestBean userBean) {
+	public ObjectId createUser(UserRequestBean userBean) throws ObjectExists {
 		Preconditions.checkNotNull(userBean, "User Object is null");
 		Preconditions.checkNotNull(userBean.getEmail(), "Email in User Obj is null");
+
+		ObjectId objectId = null;
 		try {
 			if (getUserByEmail(userBean.getEmail()) != null) {
-				throw new RuntimeException("User with email :" + userBean.getEmail() + " exists in DB");
+				throw new ObjectExists("User with email :" + userBean.getEmail() + " exists in DB");
 			}
-			User user = new User();
+			UserContact user = new UserContact();
 			BeanUtils.copyProperties(user, userBean);
 
-			mongoDao.insert(MongoCollEnum.User.toString(), gson.toJson(user));
+			objectId = mongoDao.insert(MongoCollEnum.User.toString(), gson.toJson(user));
+		} catch (ObjectExists e) {
+			logger.error(e);
+			throw new ObjectExists(e.getMessage());
 		} catch (Exception e) {
 			logger.error(e);
 			throw new RuntimeException(e);
 		}
+
+		return objectId;
 	}
 
 	public boolean isUserValid(String email, String password) {
@@ -58,24 +71,28 @@ public class UserService {
 		return isValid;
 	}
 
-	public Document getUserByEmail(String email) {
+	public User getUserByEmail(String email) {
 
 		MongoDao mongoDao = new MongoDao();
 		Bson filter = eq("email", email);
-		Document user = mongoDao.findOne(MongoCollEnum.User.toString(), filter);
+		User user = null;
+
+		List<User> results = mongoDao.aggregate(MongoCollEnum.User.toString(), User.class, Aggregates.match(filter), 1);
+
+		if (results != null && results.size() == 1) {
+			user = results.get(0);
+		}
 
 		return user;
 
 	}
 
-	public void updateUser(UserRequestBean userBean) {
-		Preconditions.checkNotNull(userBean, "User is null");
-		Preconditions.checkNotNull(userBean.getEmail(), "User Email is null");
+	public void updateUser(User user) {
+		Preconditions.checkNotNull(user, "User is null");
+		Preconditions.checkNotNull(user.getEmail(), "User Email is null");
 		MongoDao mongoDao = new MongoDao();
 
 		try {
-			User user = new User();
-			BeanUtils.copyProperties(user, userBean);
 			mongoDao.findAndReplace(MongoCollEnum.User.toString(), eq("email", user.getEmail()), gson.toJson(user));
 		} catch (Exception e) {
 			logger.error(e);

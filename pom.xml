@@ -15,12 +15,19 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<jersey2.version>2.19</jersey2.version>
-		<jaxrs.version>2.0.1</jaxrs.version>
+		<jersey2.version>2.26</jersey2.version>
+		<jaxrs.version>2.1.1</jaxrs.version>
 		<driver.version>4.6.1</driver.version>
 		<mongodb-driverversion>4.1.1</mongodb-driverversion>
+		<apache.poi.version>3.17</apache.poi.version>
+		
 	</properties>
 		<dependencies>
+		<dependency>
+		    <groupId>org.glassfish.jersey.inject</groupId>
+		    <artifactId>jersey-hk2</artifactId>
+		    <version>${jersey2.version}</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text 
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
@@ -33,22 +40,20 @@
 		    <artifactId>itextpdf</artifactId>
 		    <version>5.5.13.2</version>
 		</dependency>		-->
-
-		
 		<dependency>
 		    <groupId>org.apache.poi</groupId>
 		    <artifactId>poi</artifactId>
-		    <version>3.17</version>
+		    <version>${apache.poi.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.poi</groupId>
 		    <artifactId>poi-ooxml</artifactId>
-		    <version>3.17</version>
+		    <version>${apache.poi.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.poi</groupId>
 		    <artifactId>poi-scratchpad</artifactId>
-		    <version>3.17</version>
+		    <version>${apache.poi.version}</version>
 		</dependency>
 	
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
@@ -74,6 +79,13 @@
 		    <artifactId>jackson-core</artifactId>
 		    <version>2.12.0</version>
 		</dependency>		
+		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.12.0</version>
+</dependency>
+		
 		<dependency>
 		    <groupId>com.opencsv</groupId>
 		    <artifactId>opencsv</artifactId>
@@ -137,22 +149,18 @@
 			<version>${jersey2.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-jackson</artifactId>
-            <version>${jersey2.version}</version>
-            <exclusions>
-            	<exclusion>
-            		<groupId>com.fasterxml.jackson.core</groupId>
-            		<artifactId>jackson-core</artifactId>
-            	</exclusion>
-            </exclusions>
-		</dependency>
+		
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-processing</artifactId>
             <version>${jersey2.version}</version>
         </dependency>
+        <dependency>
+		  <groupId>org.glassfish.jersey.media</groupId>
+		  <artifactId>jersey-media-json-jackson</artifactId>
+		  <scope>runtime</scope>
+		  <version>${jersey2.version}</version>
+		</dependency>
         <dependency>
 		    <groupId>org.glassfish.jersey.ext</groupId>
 		    <artifactId>jersey-bean-validation</artifactId>

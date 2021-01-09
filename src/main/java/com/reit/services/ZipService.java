@@ -56,46 +56,46 @@ public class ZipService {
 
 	// Replaces the whole bean, retrieve and update the bean if you want incremental
 	// update
-	public void updsertIncomeBean(int zip, IncomeBean incomeBean) {
-		Preconditions.checkNotNull(zip, "zip is null");
-		Preconditions.checkNotNull(incomeBean, "IncomeBean zip value is null");
-		Preconditions.checkNotNull(incomeBean.getYear(), "IncomeBean year value is null");
-
-		ZipBean zipBean = getZipRecordy(zip);
-		Preconditions.checkNotNull(zipBean, "Hmm.., couldn't find the record");
-
-		try {
-			Map<Integer, IncomeBean> incomes = zipBean.getIncomes();
-			incomes.put(incomeBean.getZip(), incomeBean);
-			zipBean.setIncomes(incomes);
-
-			mongoDao.findAndReplace(MongoCollEnum.ZipMetrics.toString(), eq("zip", zip), gson.toJson(zipBean));
-		} catch (Exception e) {
-			logger.error(e);
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	public void updsertPopulationBean(int zip, PopulationBean populationBean) {
-		Preconditions.checkNotNull(zip, "zip is null");
-		Preconditions.checkNotNull(populationBean, "PopulationBean zip value is null");
-
-		ZipBean zipBean = getZipRecordy(zip);
-		Preconditions.checkNotNull(zipBean, "Hmm.., couldn't find the record");
-
-		try {
-			Map<Integer, PopulationBean> populations = zipBean.getPopulations();
-			populations.put(populationBean.getYear(), populationBean);
-			zipBean.setPopulations(populations);
-
-			mongoDao.findAndReplace(MongoCollEnum.ZipMetrics.toString(), eq("zip", zip), gson.toJson(populationBean));
-		} catch (Exception e) {
-			logger.error(e);
-			throw new RuntimeException(e);
-		}
-
-	}
+//	public void updsertIncomeBean(int zip, IncomeBean incomeBean) {
+//		Preconditions.checkNotNull(zip, "zip is null");
+//		Preconditions.checkNotNull(incomeBean, "IncomeBean zip value is null");
+//		Preconditions.checkNotNull(incomeBean.getYear(), "IncomeBean year value is null");
+//
+//		ZipBean zipBean = getZipRecordy(zip);
+//		Preconditions.checkNotNull(zipBean, "Hmm.., couldn't find the record");
+//
+//		try {
+//			Map<String, IncomeBean> incomes = zipBean.getIncomes();
+//			incomes.put(incomeBean.getZip(), incomeBean);
+//			zipBean.setIncomes(incomes);
+//
+//			mongoDao.findAndReplace(MongoCollEnum.ZipMetrics.toString(), eq("zip", zip), gson.toJson(zipBean));
+//		} catch (Exception e) {
+//			logger.error(e);
+//			throw new RuntimeException(e);
+//		}
+//
+//	}
+//
+//	public void updsertPopulationBean(int zip, PopulationBean populationBean) {
+//		Preconditions.checkNotNull(zip, "zip is null");
+//		Preconditions.checkNotNull(populationBean, "PopulationBean zip value is null");
+//
+//		ZipBean zipBean = getZipRecordy(zip);
+//		Preconditions.checkNotNull(zipBean, "Hmm.., couldn't find the record");
+//
+//		try {
+//			Map<Integer, PopulationBean> populations = zipBean.getPopulations();
+//			populations.put(populationBean.getYear(), populationBean);
+//			zipBean.setPopulations(populations);
+//
+//			mongoDao.findAndReplace(MongoCollEnum.ZipMetrics.toString(), eq("zip", zip), gson.toJson(populationBean));
+//		} catch (Exception e) {
+//			logger.error(e);
+//			throw new RuntimeException(e);
+//		}
+//
+//	}
 
 	public ZipBean getZipRecordy(int zip) {
 
@@ -130,8 +130,8 @@ public class ZipService {
 				ZipBean zipBean = new ZipBean();
 				int zip = populationBean.getZip();
 				zipBean.setZip(zip);
-				zipBean.setPopulations(Collections.singletonMap(year, populationBean));
-				zipBean.setIncomes(Collections.singletonMap(year, incomeBeansMap.get(zip)));
+				zipBean.setPopulations(Collections.singletonMap(Integer.toString(year), populationBean));
+				zipBean.setIncomes(Collections.singletonMap(Integer.toString(year), incomeBeansMap.get(zip)));
 
 				zipService.createZipRecord(zipBean);
 

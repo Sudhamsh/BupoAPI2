@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.List;
 import org.apache.commons.beanutils.BeanUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import com.bupo.dao.MongoDao;
 import com.bupo.enums.MongoCollEnum;
@@ -26,16 +26,19 @@ import com.mongodb.client.model.Filters;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.reit.beans.Address;
+import com.reit.beans.IncomeBean;
+import com.reit.beans.PopulationBean;
 import com.reit.beans.PropertyBean;
 import com.reit.beans.PropertyResultsBean;
 import com.reit.beans.SearchFilter;
+import com.reit.beans.ZipBean;
 import com.reit.util.DataUtils;
 
 public class PropertyService {
 	private LogManager logger = LogManager.getLogger(this.getClass());
 	private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
 
-	public void createNewProperty(PropertyBean propertyBean) {
+	public ObjectId createNewProperty(PropertyBean propertyBean) {
 		Preconditions.checkNotNull(propertyBean, "PropertyBean is null");
 		Preconditions.checkNotNull(propertyBean.getAddress(), "PropertyBean address is null");
 		Preconditions.checkNotNull(propertyBean.getAddress().getFullAddress(), "PropertyBean full address is null");
@@ -44,14 +47,17 @@ public class PropertyService {
 				"Property exists in data store");
 
 		MongoDao mongoDao = new MongoDao();
+		ObjectId objectId = new ObjectId();
 		try {
 			// TODO - Check if property exists before create.
-			mongoDao.insert(MongoCollEnum.Property.toString(), gson.toJson(propertyBean));
+			objectId = mongoDao.insert(MongoCollEnum.Property.toString(), gson.toJson(propertyBean));
 
 		} catch (Exception e) {
 			logger.error(e);
 			throw new RuntimeException(e);
 		}
+
+		return objectId;
 
 	}
 
@@ -81,16 +87,18 @@ public class PropertyService {
 			case "cap":
 				fieldList.add(getBsonFilter(searchFilter));
 				break;
-			case "ASKING_PRICE":
+			case "askingPrice":
 				fieldList.add(getBsonFilter(searchFilter));
 				break;
-			case "SCORE":
+			case "score":
 				fieldList.add(getBsonFilter(searchFilter));
 				break;
-			case "REMAINING_TERM":
+			case "remainingTerm":
 				fieldList.add(getBsonFilter(searchFilter));
 				break;
-
+			case "status":
+				fieldList.add(getBsonFilter(searchFilter));
+				break;
 			default:
 				break;
 			}
@@ -104,7 +112,7 @@ public class PropertyService {
 		System.out.println("results size: " + results.toString());
 
 		// Convert docs to results bean to hide unrequired properties
-		resultsBeans = convertToResultsBean(results);
+		resultsBeans = generateResultsBean(results);
 
 		normalizeData(resultsBeans);
 
@@ -112,16 +120,45 @@ public class PropertyService {
 
 	}
 
-	public List<PropertyResultsBean> convertToResultsBean(List<PropertyBean> results) {
+	public void populateZipData(PropertyResultsBean propertyResultsBean, String zip) {
+		ZipService zipService = new ZipService();
+		String year = "2017";
+
+		try {
+			ZipBean zipBean = zipService.findZipRecord(Integer.parseInt(zip));
+			if (zipBean != null) {
+				// Get income
+				IncomeBean income = zipBean.getIncomes().get(year);
+				if (income != null) {
+					propertyResultsBean.setIncome(income.getMedianIncome());
+				}
+
+				// Get population
+				PopulationBean population = zipBean.getPopulations().get(year);
+				if (population != null) {
+					propertyResultsBean.setPopulation(Float.parseFloat(population.getEstimateTotal()));
+				}
+
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+	}
+
+	public List<PropertyResultsBean> generateResultsBean(List<PropertyBean> results) {
 		List<PropertyResultsBean> resultsBeans = new ArrayList<PropertyResultsBean>();
 
 		for (PropertyBean propertyBean : results) {
 
 			try {
-				PropertyResultsBean bean = new PropertyResultsBean();
-				BeanUtils.copyProperties(bean, propertyBean);
+				PropertyResultsBean propResBean = new PropertyResultsBean();
+				BeanUtils.copyProperties(propResBean, propertyBean);
 
-				resultsBeans.add(bean);
+				// populate zip data
+				populateZipData(propResBean, propertyBean.getAddress().getZip());
+
+				resultsBeans.add(propResBean);
 			} catch (IllegalAccessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -142,11 +179,15 @@ public class PropertyService {
 		double[] cap = new double[resultsBeans.size()];
 		double[] pricePerSqft = new double[resultsBeans.size()];
 		double[] rentPerSqft = new double[resultsBeans.size()];
+		double[] income = new double[resultsBeans.size()];
+		double[] population = new double[resultsBeans.size()];
 
 		double[] norRemainingTerm = new double[resultsBeans.size()];
 		double[] norCap = new double[resultsBeans.size()];
 		double[] norPricePerSqft = new double[resultsBeans.size()];
 		double[] norRentPerSqft = new double[resultsBeans.size()];
+		double[] norIncome = new double[resultsBeans.size()];
+		double[] norPop = new double[resultsBeans.size()];
 
 		// normalization inputs is a double array :)
 		for (int i = 0; i < resultsBeans.size(); i++) {
@@ -154,6 +195,8 @@ public class PropertyService {
 			cap[i] = resultsBeans.get(i).getCap();
 			pricePerSqft[i] = resultsBeans.get(i).getPricePerSqft();
 			rentPerSqft[i] = resultsBeans.get(i).getRentPerSqft();
+			income[i] = resultsBeans.get(i).getIncome();
+			population[i] = resultsBeans.get(i).getPopulation();
 		}
 
 		// get normalized data
@@ -162,10 +205,14 @@ public class PropertyService {
 		norPricePerSqft = DataUtils.normalizeData(pricePerSqft);
 		norRentPerSqft = DataUtils.normalizeData(rentPerSqft);
 
+		norIncome = DataUtils.normalizeData(income);
+		norPop = DataUtils.normalizeData(population);
+
 		// compute weight
 		for (int i = 0; i < resultsBeans.size(); i++) {
-			double score = norRemainingTerm[i] + norCap[i] - norPricePerSqft[i] - norRentPerSqft[i];
-			resultsBeans.get(i).setWeightedScore(score);
+			double score = norRemainingTerm[i] + norCap[i] + norIncome[i] + norPop[i] - norPricePerSqft[i]
+					- norRentPerSqft[i];
+			resultsBeans.get(i).setWeightedScore(Double.isNaN(score) ? -9.99d : score);
 		}
 
 	}
@@ -195,10 +242,10 @@ public class PropertyService {
 	}
 
 	public static void main(String[] args) {
-		Path path;
+
 		try {
 			ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-			InputStream inputStream = classloader.getResourceAsStream("csv/UrgentCareExportResults.csv");
+			InputStream inputStream = classloader.getResourceAsStream("csv/FamilyDollar1-6.csv");
 			InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
 			final CsvToBean<PropertyBean> beans = new CsvToBeanBuilder<PropertyBean>(streamReader)
 					.withType(PropertyBean.class).withThrowExceptions(false).build();
@@ -258,8 +305,9 @@ public class PropertyService {
 		Preconditions.checkNotNull(fieldName, "fieldName is null");
 
 		if (value == 0) {
-			propertyBean.setIsDataMissing(new Boolean(true));
+			propertyBean.setIsDataMissing(Boolean.TRUE);
 			propertyBean.getMissingData().add(fieldName + " is missing");
+			propertyBean.setStatus("Missing Data");
 		}
 	}
 
