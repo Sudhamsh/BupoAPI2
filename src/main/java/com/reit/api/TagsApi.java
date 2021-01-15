@@ -1,5 +1,6 @@
 package com.reit.api;
 
+import java.security.Principal;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -8,15 +9,19 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 import org.bson.types.ObjectId;
 
 import com.bupo.util.LogManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.reit.beans.ErrorBean;
 import com.reit.services.PropertyService;
+import com.reit.util.Secured;
 
 @Path("/reit/tag")
 public class TagsApi {
@@ -25,17 +30,22 @@ public class TagsApi {
 	private Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().setDateFormat("yyyy-MM-dd").create();
 
 	@POST
+	@Secured
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Path("/propertyId/{propertyId}/tag/{tag}")
-	public Response addTag(@PathParam("propertyId") String propertyId, @PathParam("tag") String tag) {
+	public Response addTag(@PathParam("propertyId") String propertyId, @PathParam("tag") String tag,
+			@Context SecurityContext securityContext) {
 		Response response = null;
 
 		try {
+			Principal principal = securityContext.getUserPrincipal();
+			String username = principal.getName();
+			System.out.println("username .... " + username);
 			propService.addTag(new ObjectId(propertyId), tag);
 			response = Response.status(200).build();
 		} catch (Exception e) {
-			e.printStackTrace();
-			response = Response.serverError().entity(e.getMessage()).build();
+			logger.error(e);
+			response = Response.serverError().entity(new ErrorBean(500, "Unexpected Error")).build();
 		}
 
 		return response;
@@ -52,8 +62,8 @@ public class TagsApi {
 			propService.removeTag(new ObjectId(propertyId), tag);
 			response = Response.status(200).build();
 		} catch (Exception e) {
-			e.printStackTrace();
-			response = Response.serverError().entity(e.getMessage()).build();
+			logger.error(e);
+			response = Response.serverError().entity(new ErrorBean(500, "Unexpected Error")).build();
 		}
 
 		return response;

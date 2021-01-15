@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import com.bupo.util.LogManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.reit.beans.ErrorBean;
 import com.reit.beans.saas.tenant.SaasTenantBean;
 import com.reit.services.SaasTenantService;
 
@@ -29,16 +30,16 @@ public class TenantApi {
 			SaasTenantService tenantService = new SaasTenantService(saasTenant);
 			tenantService.createTenant();
 
-			response = Response.status(201).entity(null).build();
+			response = Response.status(201).entity("{}").build();
 		} catch (NotAuthorizedException e) {
 			logger.error(e);
-			response = Response.status(401).entity(null).build();
+			response = Response.status(401).entity(new ErrorBean(401, "Unexpected Error")).build();
 		} catch (EntityNotFoundException e) {
 			logger.error(e);
-			response = Response.status(400).entity(null).build();
+			response = Response.status(400).entity(new ErrorBean(400, "Unexpected Error")).build();
 		} catch (Exception e) {
 			logger.error(e);
-			response = Response.status(500).entity(gson.toJson(null)).build();
+			response = Response.status(500).entity(new ErrorBean(500, "Unexpected Error")).build();
 
 		}
 

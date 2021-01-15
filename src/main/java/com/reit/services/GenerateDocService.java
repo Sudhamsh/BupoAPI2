@@ -18,6 +18,7 @@ import org.apache.poi.hwpf.usermodel.Section;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 import com.bupo.util.LogManager;
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -27,7 +28,13 @@ public class GenerateDocService {
 	private static final String outputDir = "/Users/sudhamshbachu/eclipse-workspace-new/BupoAPI2/src/main/resources/out/";
 
 	public String generateDoc(String saasTenantName, String propertyAddress, String templateName,
-			Map<String, String> variablesMap) {
+			Map<String, String> variablesMap) throws Exception {
+		Preconditions.checkNotNull(saasTenantName, "Saas TenantName is null");
+		Preconditions.checkNotNull(propertyAddress, "Property Address is null");
+		Preconditions.checkNotNull(templateName, "Template Name is null");
+		Preconditions.checkNotNull(variablesMap, "Variables Map is null");
+		String seperator = "REIT";
+
 		String populatedFileName = null;
 		try {
 			String resourcePath = getTempalteFilePath(templateName);
@@ -43,6 +50,7 @@ public class GenerateDocService {
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error(e);
+			throw new Exception(e);
 		}
 
 		return populatedFileName;
@@ -77,6 +85,7 @@ public class GenerateDocService {
 		doc.getParagraphs().forEach(p -> {
 			p.getRuns().forEach(run -> {
 				String text = run.text();
+				System.out.println(text);
 				if (text.contains(findText)) {
 					run.setText(text.replace(findText, replaceText), 0);
 				}

@@ -11,10 +11,15 @@ public class GenerateDocServiceTest {
 	@Test
 	public void generateDoc_hp() {
 		Map<String, String> variablesMap = new HashMap<>();
+		variablesMap.put("noi_amount", "100,000");
 		variablesMap.put("purchasePrice", "1,000,000");
-		variablesMap.put("loi_amount", "100,000");
 
-		generateDocService.generateDoc("dev", "familyDollar8", "LOI", variablesMap);
+		try {
+			generateDocService.generateDoc("dev", "familyDollar11", "LOI", variablesMap);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
