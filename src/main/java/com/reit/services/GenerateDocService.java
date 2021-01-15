@@ -26,7 +26,7 @@ public class GenerateDocService {
 	private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
 	private static final String outputDir = "/Users/sudhamshbachu/eclipse-workspace-new/BupoAPI2/src/main/resources/out/";
 
-	public String generateDoc(String saasTenantName, String propertyName, String templateName,
+	public String generateDoc(String saasTenantName, String propertyAddress, String templateName,
 			Map<String, String> variablesMap) {
 		String populatedFileName = null;
 		try {
@@ -38,9 +38,10 @@ public class GenerateDocService {
 			for (String label : variablesMap.keySet()) {
 				doc = replaceTextFor(doc, label, variablesMap.get(label));
 			}
-			populatedFileName = String.format("%s_%s_%s.docx", saasTenantName, propertyName, templateName);
-			saveWord(populatedFileName, doc);
+
+			new DropBoxService().createDocument(propertyAddress, templateName, doc);
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error(e);
 		}
 

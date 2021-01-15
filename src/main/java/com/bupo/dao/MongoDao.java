@@ -1,5 +1,6 @@
 package com.bupo.dao;
 
+import static com.mongodb.client.model.Aggregates.limit;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
@@ -101,8 +102,8 @@ public class MongoDao {
 		Preconditions.checkNotNull(filter, "Filter is null");
 
 		MongoCollection<T> collection = database.getCollection(collectionName, clazz);
-
-		return collection.aggregate(Arrays.asList(filter), clazz).into(new ArrayList<>());
+		Bson limitFilter = limit(3);
+		return collection.aggregate(Arrays.asList(filter, limitFilter), clazz).into(new ArrayList<>());
 
 	}
 

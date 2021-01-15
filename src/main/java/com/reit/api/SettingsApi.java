@@ -23,7 +23,7 @@ public class SettingsApi {
 	@PUT
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Path("/propertyId/{propertyId}")
-	public Response createUser(@PathParam("propertyId") String propertyId) {
+	public Response addFav(@PathParam("propertyId") String propertyId) {
 		Response response = null;
 
 		try {

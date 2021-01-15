@@ -1,7 +1,13 @@
 package com.reit.beans;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.opencsv.bean.CsvBindByName;
@@ -20,6 +26,7 @@ import lombok.Setter;
 public class PropertyBean {
 
 	private int version = 1;
+	private ObjectId id;
 
 	@CsvRecurse
 	private Address address;
@@ -90,5 +97,11 @@ public class PropertyBean {
 
 	@CsvBindByName(column = "Opportunity Zone")
 	private Boolean opportunityZone;
+
+	// Key is tenantName and values are notes
+	private Map<String, String> propNotes = new HashMap<>();
+
+	// tags
+	private Set<String> tags = new HashSet<>();
 
 }

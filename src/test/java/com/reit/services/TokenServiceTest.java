@@ -10,10 +10,10 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 public class TokenServiceTest {
-	private TokenService tokenService = new TokenService();
 
 	@Test
 	public void getToken_hp() {
+		TokenService tokenService = new TokenService();
 		String token = tokenService.getToken();
 		Assert.assertNotNull(token);
 	}
@@ -21,8 +21,10 @@ public class TokenServiceTest {
 	@Test
 	public void isTokenValid_hp() {
 		try {
+			TokenService tokenService = new TokenService();
 			String token = tokenService.getToken();
-			tokenService.isTokenValid(token);
+			tokenService.setToken(token);
+			tokenService.isTokenValid();
 		} catch (Exception e) {
 			Assert.fail(e.getMessage());
 		}
@@ -33,14 +35,16 @@ public class TokenServiceTest {
 	public void isTokenValid_cc() {
 		try {
 			String token = null;
-			tokenService.isTokenValid(token);
+			TokenService tokenService = new TokenService(token);
+			tokenService.isTokenValid();
 			Assert.fail("Invalid token came as valid");
 		} catch (Exception e) {
 
 		}
 
 		try {
-			tokenService.isTokenValid("");
+			TokenService tokenService = new TokenService(null);
+			tokenService.isTokenValid();
 			Assert.fail("Invalid token came as valid");
 		} catch (Exception e) {
 
@@ -48,7 +52,8 @@ public class TokenServiceTest {
 
 		try {
 			Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-			boolean isValid = tokenService.isTokenValid(Jwts.builder().setSubject("abc").signWith(key).compact());
+			TokenService tokenService = new TokenService(Jwts.builder().setSubject("abc").signWith(key).compact());
+			boolean isValid = tokenService.isTokenValid();
 			Assert.assertFalse("Invalid token came as valid", isValid);
 		} catch (Exception e) {
 

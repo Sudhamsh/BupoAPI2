@@ -1,6 +1,5 @@
 package com.reit.api;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
@@ -25,16 +24,11 @@ public class DocApi {
 
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Response createDoc() {
+	public Response createDoc(Map<String, String> variablesMap) {
 		Response response = null;
 		SearchResultBean<PropertyResultsBean> resultBean = new SearchResultBean<PropertyResultsBean>();
 
 		try {
-
-			Map<String, String> variablesMap = new HashMap<>();
-			variablesMap.put("purchasePrice", "1,000,000");
-			variablesMap.put("loi_amount", "100,000");
-
 			docService.generateDoc("dev", "familyDollar", "LOI", variablesMap);
 
 			response = Response.status(200).entity(gson.toJson(resultBean)).build();

@@ -14,7 +14,7 @@ public class GenerateDocServiceTest {
 		variablesMap.put("purchasePrice", "1,000,000");
 		variablesMap.put("loi_amount", "100,000");
 
-		generateDocService.generateDoc("dev", "familyDollar", "LOI", variablesMap);
+		generateDocService.generateDoc("dev", "familyDollar8", "LOI", variablesMap);
 	}
 
 }

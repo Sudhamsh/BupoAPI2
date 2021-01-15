@@ -1,5 +1,7 @@
 package com.reit.beans;
 
+import org.bson.types.ObjectId;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Getter;
@@ -12,6 +14,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PropertyResultsBean {
 
+	private ObjectId id;
 	private String name;
 	private String status;
 	private String externalLink;
@@ -25,6 +28,7 @@ public class PropertyResultsBean {
 	private float norPricePerSqft;
 	private float rentPerSqft;
 	private float norRentPerSqft;
+	private float noi;
 
 	// zip data fields
 	private int zip;

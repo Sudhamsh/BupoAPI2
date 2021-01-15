@@ -1,8 +1,11 @@
 package com.reit.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -67,7 +70,7 @@ public class PropertyServiceTest {
 			filters.add(remainingFilter);
 
 			List<PropertyResultsBean> properties = propertyService.findMatchingProperties(filters);
-			System.out.println("properties size : " + properties.size());
+			System.out.println("properties size : " + properties.get(0).getId());
 			Assert.assertTrue("Couldn't find properties with cap: " + cap, properties.size() > 0);
 
 		} catch (Exception e) {
@@ -75,6 +78,27 @@ public class PropertyServiceTest {
 			Assert.fail("Exception on find properties");
 		}
 
+	}
+
+	@Test
+	public void addNotes() {
+
+		// Create prop
+		PropertyBean propertyBean = getDummyPropertyBean();
+		ObjectId objId = propertyService.createNewProperty(propertyBean);
+
+		// add notes
+
+		try {
+			propertyService.addNotes("a@a.com", objId, "Notes test1");
+
+			PropertyBean propertyBean2 = propertyService.getPopertyById(objId);
+			Assert.assertTrue("Prop Notes size is not 1", propertyBean2.getPropNotes().size() == 1);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Assert.fail("Save notes failed with an exception." + e.getMessage());
+		}
 	}
 
 	public PropertyBean getDummyPropertyBean() {
@@ -87,6 +111,20 @@ public class PropertyServiceTest {
 		propertyBean.setAddress(address);
 
 		return propertyBean;
+
+	}
+
+	@Test
+	public void addTags() {
+
+		// Create prop
+		PropertyBean propertyBean = getDummyPropertyBean();
+		propertyBean.setTags(new HashSet<>(Arrays.asList("Tag1", "Tag2")));
+		ObjectId objId = propertyService.createNewProperty(propertyBean);
+		System.out.println(objId.toHexString());
+		// Find and validate
+		propertyBean = propertyService.getPopertyById(objId);
+		Assert.assertSame("Tags size is not 2 :)", 2, propertyBean.getTags().size());
 
 	}
 

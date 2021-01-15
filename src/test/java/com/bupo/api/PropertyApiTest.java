@@ -41,4 +41,33 @@ public class PropertyApiTest extends JerseyTest {
 
 	}
 
+	@Test
+	public void addNotes() {
+		try {
+			Response response = target("reit/property/propertyId/5ff941b77ad1820c4689aff5/notes/abcd")
+					.request(MediaType.APPLICATION_JSON).put(Entity.entity("{}", MediaType.APPLICATION_JSON));
+			System.out.println(response.getStatus());
+
+			assertEquals("Http Response should be 200 ", 200, response.getStatus());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail("Failed with an exception");
+		}
+	}
+
+	@Test
+	public void getNotes() {
+		try {
+			Response response = target("reit/property/propertyId/5ff941b77ad1820c4689aff5/notes")
+					.request(MediaType.APPLICATION_JSON).get();
+			String responseStr = (String) response.readEntity(String.class);
+			System.out.println("responseStr: " + responseStr);
+
+			assertEquals("Http Response should be 200 ", 200, response.getStatus());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Assert.fail("Failed with an exception");
+		}
+	}
+
 }

@@ -8,7 +8,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityExistsException;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.bson.Document;
@@ -72,6 +79,22 @@ public class PropertyService {
 
 	}
 
+	public PropertyBean getPopertyById(ObjectId objectId) {
+
+		MongoDao mongoDao = new MongoDao();
+		Bson filter = eq("_id", objectId);
+
+		List<PropertyBean> results = mongoDao.aggregate(MongoCollEnum.Property.toString(), PropertyBean.class,
+				Aggregates.match(filter), 1);
+		PropertyBean propertyBean = null;
+		if (results != null && results.size() == 1) {
+			propertyBean = results.get(0);
+		}
+
+		return propertyBean;
+
+	}
+
 	public List<PropertyResultsBean> findMatchingProperties(List<SearchFilter> filters) {
 		List<PropertyResultsBean> resultsBeans = new ArrayList<PropertyResultsBean>();
 		Preconditions.checkNotNull(filters, "Search Filters is null");
@@ -107,7 +130,7 @@ public class PropertyService {
 		Preconditions.checkNotNull(fieldList.size(), "Hmm. Filters is empty");
 
 		List<PropertyBean> results = mongoDao.aggregate(MongoCollEnum.Property.toString(), PropertyBean.class,
-				Aggregates.match(Filters.and(fieldList)), 500);
+				Aggregates.match(Filters.and(fieldList)), 5);
 
 		System.out.println("results size: " + results.toString());
 
@@ -153,7 +176,9 @@ public class PropertyService {
 
 			try {
 				PropertyResultsBean propResBean = new PropertyResultsBean();
+				System.out.println("id:" + propertyBean.getId());
 				BeanUtils.copyProperties(propResBean, propertyBean);
+				System.out.println(" propResBean id:" + propResBean.getId());
 
 				// populate zip data
 				populateZipData(propResBean, propertyBean.getAddress().getZip());
@@ -320,6 +345,117 @@ public class PropertyService {
 			address.setFullAddress(fullLine);
 			propertyBean.setAddress(address);
 		}
+	}
+
+	public void addNotes(String userEmail, ObjectId propObjectId, String notes) throws Exception {
+		Preconditions.checkNotNull(userEmail, "User Email is null");
+		Preconditions.checkNotNull(propObjectId, "ObjId is null");
+		Preconditions.checkNotNull(notes, "Notes is null");
+
+		// find property
+		PropertyBean propertyBean = getPopertyById(propObjectId);
+		Preconditions.checkNotNull(propertyBean, "Couldn't find property by Id");
+
+		Map<String, String> propNotes = propertyBean.getPropNotes();
+		// add setting
+		if (propNotes == null) {
+			logger.error("Notes object came as null. Not expected. Receovering by receating the object");
+			propNotes = new HashMap<>();
+		}
+		String tenantName = new TokenService().getTenantName();
+		propNotes.put(tenantName, appendNotes(userEmail, propNotes.get(tenantName), notes));
+		propertyBean.setPropNotes(propNotes);
+
+		// save setting
+		updateProp(propertyBean);
+	}
+
+	public String getNotes(ObjectId propObjectId, String tenantName) {
+		Preconditions.checkNotNull(propObjectId, "ObjId is null");
+		Preconditions.checkNotNull(tenantName, "Tenant Name is null");
+
+		String notes = "";
+		PropertyBean bean = getPopertyById(propObjectId);
+		if (bean == null) {
+			throw new EntityExistsException("Couldn't find the property");
+		}
+		if (bean.getPropNotes() != null) {
+			notes = bean.getPropNotes().get(tenantName);
+		}
+
+		return notes;
+
+	}
+
+	public void updateProp(PropertyBean propertyBean) {
+		Preconditions.checkNotNull(propertyBean, "PropertyBean is null");
+		Preconditions.checkNotNull(propertyBean.getId(), "Prop Id is null");
+		MongoDao mongoDao = new MongoDao();
+
+		try {
+			mongoDao.findAndReplace(MongoCollEnum.Property.toString(), eq("_id", propertyBean.getId()),
+					gson.toJson(propertyBean));
+		} catch (Exception e) {
+			logger.error(e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	String appendNotes(String userEmail, String oldNotes, String newNotes) {
+		StringBuilder notes = new StringBuilder();
+
+		notes.append("Added by " + userEmail + " On " + new Date() + "\n" + newNotes);
+
+		if (oldNotes != null) {
+			notes.append("\n" + oldNotes + "\n");
+		}
+
+		return notes.toString();
+	}
+
+	public void addTag(ObjectId propId, String tag) throws Exception {
+		modifyTags(propId, new HashSet<>(Arrays.asList(tag)), "add");
+	}
+
+	public void removeTag(ObjectId propId, String tag) throws Exception {
+		modifyTags(propId, new HashSet<>(Arrays.asList(tag)), "remove");
+	}
+
+	public void modifyTags(ObjectId propId, Set<String> tags, String operation) throws Exception {
+		Preconditions.checkNotNull(tags, "Tags list is null");
+		Preconditions.checkNotNull(propId, "Property id  is null");
+
+		PropertyBean property = getPopertyById(propId);
+		Preconditions.checkNotNull(property, "Couldn't find property by id.");
+
+		// TODO: Could use some simplification...
+		if ("add".equals(operation)) {
+			if (property.getTags() == null) {
+				property.setTags(tags);
+			} else {
+				property.getTags().addAll(tags);
+			}
+		} else if ("remove".equals(operation)) {
+			if (property.getTags() != null) {
+				property.getTags().removeAll(tags);
+			}
+		} else {
+			throw new Exception("Invalid operation. User add/remove.");
+		}
+
+		updateProp(property);
+	}
+
+	public Set<String> getTags(ObjectId propId) {
+		Preconditions.checkNotNull(propId, "Property id  is null");
+		Set<String> tags = null;
+
+		PropertyBean property = getPopertyById(propId);
+		Preconditions.checkNotNull(property, "Couldn't find property by id.");
+
+		tags = property.getTags() == null ? new HashSet<>() : property.getTags();
+
+		return tags;
 	}
 
 }
