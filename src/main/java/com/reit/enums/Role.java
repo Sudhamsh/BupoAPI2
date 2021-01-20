@@ -1,5 +1,5 @@
 package com.reit.enums;
 
 public enum Role {
-	ROLE_1, ROLE_2, ROLE_3
+	ORG_ADMIN, AGENT_ADMIN, AGENT_MEMBER, BUYER, SELLER
 }

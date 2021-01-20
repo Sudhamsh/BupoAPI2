@@ -21,7 +21,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.reit.beans.ErrorBean;
 import com.reit.services.PropertyService;
-import com.reit.util.Secured;
 
 @Path("/reit/tag")
 public class TagsApi {
@@ -30,7 +29,6 @@ public class TagsApi {
 	private Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().setDateFormat("yyyy-MM-dd").create();
 
 	@POST
-	@Secured
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Path("/propertyId/{propertyId}/tag/{tag}")
 	public Response addTag(@PathParam("propertyId") String propertyId, @PathParam("tag") String tag,

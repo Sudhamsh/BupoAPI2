@@ -50,6 +50,7 @@ public class MongoDao {
 		collectionMap.put("companyMetrics", database.getCollection("companyMetrics"));
 		collectionMap.put("saasTenant", database.getCollection("saasTenant"));
 		collectionMap.put("teams", database.getCollection("teams"));
+		collectionMap.put("token", database.getCollection("token"));
 
 	}
 

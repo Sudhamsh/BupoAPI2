@@ -16,6 +16,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
+import com.google.gson.Gson;
 import com.reit.enums.Role;
 import com.reit.util.Secured;
 
@@ -29,7 +30,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
 
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException {
-
+		System.out.println("AuthorizationFilter...........");
 		// Get the resource class which matches with the requested URL
 		// Extract the roles declared by it
 		Class<?> resourceClass = resourceInfo.getResourceClass();
@@ -39,6 +40,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
 		// Extract the roles declared by it
 		Method resourceMethod = resourceInfo.getResourceMethod();
 		List<Role> methodRoles = extractRoles(resourceMethod);
+		System.out.println("methodRoles : " + new Gson().toJson(methodRoles));
 
 		try {
 

@@ -13,11 +13,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.reit.api.PropertyAPI;
+import com.reit.filter.AuthenticationFilter;
 
 public class PropertyApiTest extends JerseyTest {
 	@Override
 	protected Application configure() {
-		return new ResourceConfig(PropertyAPI.class);
+		return new ResourceConfig(PropertyAPI.class, AuthenticationFilter.class);
 	}
 
 	@Test
@@ -59,7 +60,7 @@ public class PropertyApiTest extends JerseyTest {
 	public void getNotes() {
 		try {
 			Response response = target("reit/property/propertyId/5ff941b77ad1820c4689aff5/notes")
-					.request(MediaType.APPLICATION_JSON).get();
+					.request(MediaType.APPLICATION_JSON).header("Authorization", "Bearer 1234").get();
 			String responseStr = (String) response.readEntity(String.class);
 			System.out.println("responseStr: " + responseStr);
 

@@ -13,13 +13,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class User {
-	private ObjectId objectId;
-	private String displayName;
-	private String password;
-	private boolean isPasswordTemp;
-	private String email;
-	private int shares;
+public class User extends UserStub {
+	private ObjectId id;
 	private Settings settings;
+	private String tenantObjId;
+	private String displayName;
 
 }

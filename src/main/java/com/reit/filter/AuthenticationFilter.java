@@ -11,6 +11,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 
+import com.reit.services.TokenService;
 import com.reit.util.Secured;
 
 import io.jsonwebtoken.io.IOException;
@@ -42,10 +43,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 		String token = authorizationHeader.substring(AUTHENTICATION_SCHEME.length()).trim();
 
 		try {
-
 			// Validate the token
 			validateToken(token);
-
 		} catch (Exception e) {
 			abortWithUnauthorized(requestContext);
 		}
@@ -95,6 +94,10 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 	private void validateToken(String token) throws Exception {
 		// Check if the token was issued by the server and if it's not expired
 		// Throw an Exception if the token is invalid
+		TokenService tokenService = new TokenService();
+		if (tokenService.lookupToken(token) == null) {
+			throw new Exception("Invalid token");
+		}
 	}
 
 }

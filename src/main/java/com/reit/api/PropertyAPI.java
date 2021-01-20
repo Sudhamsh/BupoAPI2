@@ -29,6 +29,7 @@ import com.reit.enums.FilterOperator;
 import com.reit.services.PropertyService;
 import com.reit.services.TokenService;
 import com.reit.util.GsonUtils;
+import com.reit.util.Secured;
 
 @Path("/reit/property")
 public class PropertyAPI {
@@ -101,6 +102,7 @@ public class PropertyAPI {
 	}
 
 	@GET
+	@Secured
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Path("/propertyId/{propertyId}/notes")
 	public Response getNotes(@PathParam("propertyId") String propertyId) {

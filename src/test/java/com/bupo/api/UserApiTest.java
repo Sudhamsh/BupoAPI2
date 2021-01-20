@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.bupo.beans.UserRequestBean;
+import com.reit.api.UserApi;
 
 public class UserApiTest extends JerseyTest {
 	@Override

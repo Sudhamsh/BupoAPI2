@@ -1,4 +1,6 @@
-package com.bupo.api;
+package com.reit.api;
+
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -15,10 +17,15 @@ import com.bupo.beans.UserRequestBean;
 import com.bupo.exceptions.ObjectExists;
 import com.bupo.services.UserService;
 import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
+import com.reit.beans.AuthResponse;
+import com.reit.services.TokenService;
+import com.reit.util.GsonUtils;
 
 @Path("/user")
 public class UserApi {
 	private UserService userService = new UserService();
+	private Gson gson = GsonUtils.getGson();
 
 	@POST
 	@Consumes({ MediaType.APPLICATION_JSON })
@@ -28,15 +35,37 @@ public class UserApi {
 		try {
 			userService.createUser(user);
 
-			response = Response.status(201).build();
+			// Issue a token for the user
+			String token = new TokenService().createNewToken(user.getEmail());
+
+			// Return the token on the response
+			response = Response.status(201).entity(gson.toJson(new AuthResponse(token))).build();
 		} catch (ObjectExists e) {
+			e.printStackTrace();
 			response = Response.status(Status.CONFLICT).entity(Status.NO_CONTENT).build();
 		} catch (Exception e) {
+			e.printStackTrace();
 			response = Response.serverError().build();
 		}
 
 		return response;
 
+	}
+
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Response getTenantUsers() {
+		Response response = null;
+		try {
+			List<User> users = userService.getLoggedInTenantUsers();
+
+			response = Response.status(200).entity(gson.toJson(users)).build();
+
+		} catch (Exception e) {
+			response = Response.serverError().build();
+		}
+
+		return response;
 	}
 
 	@GET
