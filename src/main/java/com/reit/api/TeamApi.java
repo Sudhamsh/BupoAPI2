@@ -15,6 +15,7 @@ import com.google.gson.GsonBuilder;
 import com.reit.beans.ErrorBean;
 import com.reit.beans.saas.tenant.Team;
 import com.reit.services.SaasTenantService;
+import com.reit.util.Secured;
 
 @Path("/reit/team")
 public class TeamApi {
@@ -23,6 +24,7 @@ public class TeamApi {
 
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Secured
 	public Response createTeam(@NotNull(message = "API payload can't be null") Team team) {
 		Response response = null;
 

@@ -13,6 +13,7 @@ import com.reit.beans.ErrorBean;
 import com.reit.beans.LoiRequestBean;
 import com.reit.services.DigiSignService;
 import com.reit.util.GsonUtils;
+import com.reit.util.Secured;
 
 @Path("/reit/doc")
 public class DocApi {
@@ -22,6 +23,7 @@ public class DocApi {
 
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Secured
 	public Response createDoc(LoiRequestBean loiRequestBean) {
 		Response response = null;
 

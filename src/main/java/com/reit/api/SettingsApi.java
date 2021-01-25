@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.reit.beans.ErrorBean;
 import com.reit.services.SettingService;
+import com.reit.util.Secured;
 
 @Path("/reit/settings")
 public class SettingsApi {
@@ -24,6 +25,7 @@ public class SettingsApi {
 	@PUT
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Path("/propertyId/{propertyId}")
+	@Secured
 	public Response addFav(@PathParam("propertyId") String propertyId) {
 		Response response = null;
 

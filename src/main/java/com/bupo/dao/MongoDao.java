@@ -23,6 +23,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.DeleteResult;
 
 public class MongoDao {
 
@@ -113,6 +114,14 @@ public class MongoDao {
 
 		MongoCollection<Document> collection = collectionMap.get(collectionName);
 		return collection.find(filter).first();
+
+	}
+
+	public boolean deleteOne(String collectionName, Bson filter) {
+
+		MongoCollection<Document> collection = collectionMap.get(collectionName);
+		DeleteResult result = collection.deleteOne(filter);
+		return result.wasAcknowledged();
 
 	}
 

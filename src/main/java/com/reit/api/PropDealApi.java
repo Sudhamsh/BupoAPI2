@@ -23,6 +23,7 @@ import com.reit.beans.PropDealReq;
 import com.reit.services.PropDealService;
 import com.reit.services.TokenService;
 import com.reit.util.GsonUtils;
+import com.reit.util.Secured;
 
 @Path("/deal")
 public class PropDealApi {
@@ -33,6 +34,7 @@ public class PropDealApi {
 	@POST
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Secured
 	public Response createPropDeal(PropDealReq propDealReq) {
 		Response response = null;
 
@@ -57,6 +59,7 @@ public class PropDealApi {
 	@GET
 	@Path("/property/{propertyId}")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Secured
 	public Response getTenantUsers(@PathParam("propertyId") ObjectId propertyId) {
 		Response response = null;
 		try {

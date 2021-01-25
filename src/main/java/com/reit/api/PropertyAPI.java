@@ -82,7 +82,6 @@ public class PropertyAPI {
 	}
 
 	@PUT
-
 	@Path("/propertyId/{propertyId}/notes")
 	@Secured
 	public Response addNotes(@PathParam("propertyId") String propertyId, NotesBean note,

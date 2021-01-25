@@ -55,6 +55,7 @@ public class TagsApi {
 	@DELETE
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Path("/propertyId/{propertyId}/tag/{tag}")
+	@Secured
 	public Response removeTag(@PathParam("propertyId") String propertyId, @PathParam("tag") String tag) {
 		Response response = null;
 
@@ -73,6 +74,7 @@ public class TagsApi {
 	@GET
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Path("/propertyId/{propertyId}/")
+	@Secured
 	public Response getTag(@PathParam("propertyId") String propertyId) {
 		Response response = null;
 

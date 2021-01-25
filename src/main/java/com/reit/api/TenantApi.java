@@ -15,6 +15,7 @@ import com.google.gson.GsonBuilder;
 import com.reit.beans.ErrorBean;
 import com.reit.beans.saas.tenant.SaasTenantBean;
 import com.reit.services.SaasTenantService;
+import com.reit.util.Secured;
 
 @Path("/reit/tenant")
 public class TenantApi {
@@ -23,6 +24,7 @@ public class TenantApi {
 
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Secured
 	public Response createTenant(@NotNull(message = "API payload can't be null") SaasTenantBean saasTenant) {
 		Response response = null;
 

@@ -40,6 +40,19 @@ public class TokenService {
 		return token;
 	}
 
+	/**
+	 * Delete token and return if datastore's ack
+	 * 
+	 * @param token
+	 * @return
+	 */
+	public boolean deleteToken(String token) {
+		MongoDao mongoDao = new MongoDao();
+		Bson filter = eq("token", token);
+
+		return mongoDao.deleteOne(MongoCollEnum.TOKEN.toString(), filter);
+	}
+
 	public TokenBean lookupToken(String token) {
 		TokenBean tokenBean = null;
 
