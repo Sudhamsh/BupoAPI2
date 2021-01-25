@@ -99,7 +99,7 @@ public class PropertyBean {
 	private Boolean opportunityZone;
 
 	// Key is tenantName and values are notes
-	private Map<String, String> propNotes = new HashMap<>();
+	private Map<String, List<NotesBean>> propNotes = new HashMap<String, List<NotesBean>>();
 
 	// tags
 	private Set<String> tags = new HashSet<>();

@@ -1,11 +1,13 @@
 package com.reit.services;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.mongodb.client.model.Filters.eq;
 
 import java.security.Key;
 import java.util.List;
 
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import com.bupo.dao.MongoDao;
 import com.bupo.enums.MongoCollEnum;
@@ -62,8 +64,14 @@ public class TokenService {
 		return "dev2_org";
 	}
 
-	public String getLoggedInUser() {
-		return "a@a.com";
+	public ObjectId getTenantObjId() {
+
+		return new SaasTenantService().getSaasTenant(getTenantName()).getId();
+	}
+
+	public String getLoggedInUser(String token) {
+		checkNotNull(token, "Token  is null");
+		return lookupToken(token).getUserEmail();
 	}
 
 	public boolean isTokenValid(String token) {

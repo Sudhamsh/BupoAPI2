@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.reit.beans.Address;
+import com.reit.beans.NotesBean;
 import com.reit.beans.PropertyBean;
 import com.reit.beans.PropertyResultsBean;
 import com.reit.beans.SearchFilter;
@@ -90,7 +91,7 @@ public class PropertyServiceTest {
 		// add notes
 
 		try {
-			propertyService.addNotes("a@a.com", objId, "Notes test1");
+			propertyService.addNotes(objId, new NotesBean("a@a.com", "Notes test1"));
 
 			PropertyBean propertyBean2 = propertyService.getPopertyById(objId);
 			Assert.assertTrue("Prop Notes size is not 1", propertyBean2.getPropNotes().size() == 1);
@@ -101,7 +102,7 @@ public class PropertyServiceTest {
 		}
 	}
 
-	public PropertyBean getDummyPropertyBean() {
+	public static PropertyBean getDummyPropertyBean() {
 		PropertyBean propertyBean = new PropertyBean();
 		Address address = new Address();
 		TenantDetails tenantDetails = new TenantDetails();

@@ -11,9 +11,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
 
 import org.bson.types.ObjectId;
 
@@ -21,8 +23,8 @@ import com.bupo.beans.SearchResultBean;
 import com.bupo.exceptions.ObjectExists;
 import com.bupo.util.LogManager;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.reit.beans.ErrorBean;
+import com.reit.beans.NotesBean;
 import com.reit.beans.PropertyResultsBean;
 import com.reit.beans.SearchFilter;
 import com.reit.enums.FilterOperator;
@@ -80,13 +82,17 @@ public class PropertyAPI {
 	}
 
 	@PUT
-	@Consumes({ MediaType.APPLICATION_JSON })
-	@Path("/propertyId/{propertyId}/notes/{notes}")
-	public Response addNotes(@PathParam("propertyId") String propertyId, @PathParam("notes") String notes) {
+
+	@Path("/propertyId/{propertyId}/notes")
+	@Secured
+	public Response addNotes(@PathParam("propertyId") String propertyId, NotesBean note,
+			@Context SecurityContext securityContext) {
 		Response response = null;
 
 		try {
-			propertyService.addNotes(new TokenService().getLoggedInUser(), new ObjectId(propertyId), notes);
+			String loggedInUser = securityContext.getUserPrincipal().getName();
+			note.setUserEmail(loggedInUser);
+			propertyService.addNotes(new ObjectId(propertyId), note);
 
 			response = Response.status(200).build();
 		} catch (ObjectExists e) {
@@ -111,14 +117,9 @@ public class PropertyAPI {
 		try {
 			TokenService tokenService = new TokenService();
 
-			String notes = propertyService.getNotes(new ObjectId(propertyId), tokenService.getTenantName());
+			List<NotesBean> notes = propertyService.getNotes(new ObjectId(propertyId), tokenService.getTenantName());
 
-			notes = notes == null ? "" : notes;
-
-			JsonObject responseObj = new JsonObject();
-			responseObj.addProperty("notes", notes);
-
-			response = Response.status(200).entity(gson.toJson(responseObj)).build();
+			response = Response.status(200).entity(gson.toJson(notes)).build();
 		} catch (Exception e) {
 			logger.error(e);
 			response = Response.serverError().entity(new ErrorBean(500, "Unexpected Error")).build();

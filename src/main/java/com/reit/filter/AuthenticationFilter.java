@@ -30,7 +30,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
 		// Get the Authorization header from the request
 		String authorizationHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
-		String username = "abcd";
 
 		// Validate the Authorization header
 		if (!isTokenBasedAuthentication(authorizationHeader)) {
@@ -48,6 +47,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 		} catch (Exception e) {
 			abortWithUnauthorized(requestContext);
 		}
+
+		String username = new TokenService().getLoggedInUser(token);
 
 		final SecurityContext currentSecurityContext = requestContext.getSecurityContext();
 		requestContext.setSecurityContext(new SecurityContext() {
@@ -95,9 +96,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 		// Check if the token was issued by the server and if it's not expired
 		// Throw an Exception if the token is invalid
 		TokenService tokenService = new TokenService();
+
 		if (tokenService.lookupToken(token) == null) {
 			throw new Exception("Invalid token");
 		}
+
 	}
 
 }

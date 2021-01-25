@@ -24,6 +24,11 @@
 		
 	</properties>
 		<dependencies>
+			<dependency>
+			  <groupId>com.hellosign</groupId>
+			  <artifactId>hellosign-java-sdk</artifactId>
+			  <version>RELEASE</version>
+			</dependency>
 			<!-- https://mvnrepository.com/artifact/com.google.api-client/google-api-client -->
 			<dependency>
 			    <groupId>com.google.api-client</groupId>

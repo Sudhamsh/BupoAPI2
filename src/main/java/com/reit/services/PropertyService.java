@@ -8,7 +8,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,23 +26,24 @@ import com.bupo.enums.MongoCollEnum;
 import com.bupo.util.LogManager;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.reit.beans.Address;
 import com.reit.beans.IncomeBean;
+import com.reit.beans.NotesBean;
 import com.reit.beans.PopulationBean;
 import com.reit.beans.PropertyBean;
 import com.reit.beans.PropertyResultsBean;
 import com.reit.beans.SearchFilter;
 import com.reit.beans.ZipBean;
 import com.reit.util.DataUtils;
+import com.reit.util.GsonUtils;
 
 public class PropertyService {
 	private LogManager logger = LogManager.getLogger(this.getClass());
-	private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+	private Gson gson = GsonUtils.getGson();
 
 	public ObjectId createNewProperty(PropertyBean propertyBean) {
 		Preconditions.checkNotNull(propertyBean, "PropertyBean is null");
@@ -347,35 +347,39 @@ public class PropertyService {
 		}
 	}
 
-	public void addNotes(String userEmail, ObjectId propObjectId, String notes) throws Exception {
-		Preconditions.checkNotNull(userEmail, "User Email is null");
+	public void addNotes(ObjectId propObjectId, NotesBean note) throws Exception {
 		Preconditions.checkNotNull(propObjectId, "ObjId is null");
-		Preconditions.checkNotNull(notes, "Notes is null");
+		Preconditions.checkNotNull(note, "Notes is null");
 
 		// find property
 		PropertyBean propertyBean = getPopertyById(propObjectId);
 		Preconditions.checkNotNull(propertyBean, "Couldn't find property by Id");
 
-		Map<String, String> propNotes = propertyBean.getPropNotes();
-		// add setting
+		Map<String, List<NotesBean>> propNotes = propertyBean.getPropNotes();
+
+		// init
 		if (propNotes == null) {
 			logger.error("Notes object came as null. Not expected. Receovering by receating the object");
 			propNotes = new HashMap<>();
 		}
+
+		// Add notes
 		String tenantName = new TokenService().getTenantName();
-		propNotes.put(tenantName, appendNotes(userEmail, propNotes.get(tenantName), notes));
+
+		propNotes.put(tenantName, appendNotes(propNotes.get(tenantName), note));
 		propertyBean.setPropNotes(propNotes);
 
 		// save setting
 		updateProp(propertyBean);
 	}
 
-	public String getNotes(ObjectId propObjectId, String tenantName) {
+	public List<NotesBean> getNotes(ObjectId propObjectId, String tenantName) {
 		Preconditions.checkNotNull(propObjectId, "ObjId is null");
 		Preconditions.checkNotNull(tenantName, "Tenant Name is null");
 
-		String notes = "";
+		List<NotesBean> notes = new ArrayList<>();
 		PropertyBean bean = getPopertyById(propObjectId);
+
 		if (bean == null) {
 			throw new EntityExistsException("Couldn't find the property");
 		}
@@ -401,16 +405,13 @@ public class PropertyService {
 		}
 	}
 
-	String appendNotes(String userEmail, String oldNotes, String newNotes) {
-		StringBuilder notes = new StringBuilder();
+	List<NotesBean> appendNotes(List<NotesBean> notesList, NotesBean newNote) {
 
-		notes.append("Added by " + userEmail + " On " + new Date() + "\n" + newNotes);
+		notesList = notesList == null ? new ArrayList<>() : notesList;
+		notesList.add(newNote);
 
-		if (oldNotes != null) {
-			notes.append("\n" + oldNotes + "\n");
-		}
+		return notesList;
 
-		return notes.toString();
 	}
 
 	public void addTag(ObjectId propId, String tag) throws Exception {
