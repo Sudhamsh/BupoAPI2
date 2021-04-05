@@ -4,8 +4,7 @@
     version="2.0" xmlns="http://java.sun.com/xml/ns/persistence">
     <persistence-unit name="todos" transaction-type="RESOURCE_LOCAL">
     <class>com.bupo.dao.model.UserAuto</class>
-    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-        
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>        
  <properties>
   <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
   <property name="javax.persistence.jdbc.url"
