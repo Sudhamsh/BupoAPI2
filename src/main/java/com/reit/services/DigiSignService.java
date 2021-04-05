@@ -4,10 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.NotFoundException;
-
-import org.bson.types.ObjectId;
-
 import com.bupo.beans.User;
 import com.bupo.services.UserService;
 import com.google.common.base.Preconditions;
@@ -19,7 +15,6 @@ import com.hellosign.sdk.resource.TemplateSignatureRequest;
 import com.hellosign.sdk.resource.support.CustomField;
 import com.hellosign.sdk.resource.support.TemplateList;
 import com.reit.beans.LoiRequestBean;
-import com.reit.beans.PropertyBean;
 
 public class DigiSignService {
 
@@ -40,7 +35,7 @@ public class DigiSignService {
 		Map<String, String> variablesMap = new HashMap<>();
 		variablesMap.put("loi_purchase_price", loiRequestBean.getOfferPrice());
 		variablesMap.put("loi_buyer_name", buyer.getGivenName());
-		populatePropertyData(loiRequestBean.getPropId(), variablesMap);
+		new PropertyService().populatePropertyData(loiRequestBean.getPropId(), variablesMap);
 
 		try {
 			templateList = client.getTemplates();
@@ -81,23 +76,6 @@ public class DigiSignService {
 			e.printStackTrace();
 			throw new Exception(e.getMessage());
 		}
-
-	}
-
-	public void populatePropertyData(ObjectId propId, Map<String, String> variablesMap) {
-		Preconditions.checkNotNull(propId, "Property ID is null");
-		Preconditions.checkNotNull(variablesMap, "Fields map is null");
-
-		PropertyService propertyService = new PropertyService();
-		PropertyBean propertyBean = propertyService.getPopertyById(propId);
-
-		if (propertyBean == null) {
-			throw new NotFoundException("Property Not found");
-		}
-
-		variablesMap.put("loi_prop_name", propertyBean.getPropertyName());
-		variablesMap.put("loi_prop_address", propertyBean.getAddress().getFullAddress());
-		variablesMap.put("loi_noi", Float.toString(propertyBean.getNoi()));
 
 	}
 

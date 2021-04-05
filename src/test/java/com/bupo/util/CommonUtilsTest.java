@@ -2,6 +2,8 @@ package com.bupo.util;
 
 import org.junit.Test;
 
+import com.reit.util.CommonUtils;
+
 public class CommonUtilsTest {
 
 	@Test

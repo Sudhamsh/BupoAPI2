@@ -3,11 +3,11 @@ package com.reit.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.bupo.util.CommonUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.reit.util.CommonUtils;
 import com.reit.util.JsonUtil;
 
 public class JsonUtilTest {

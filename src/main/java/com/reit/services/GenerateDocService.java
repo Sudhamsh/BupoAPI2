@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.poi.hwpf.HWPFDocument;
@@ -21,39 +22,43 @@ import com.bupo.util.LogManager;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.reit.beans.LoiRequestBean;
 
 public class GenerateDocService {
 	private LogManager logger = LogManager.getLogger(this.getClass());
 	private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
 	private static final String outputDir = "/Users/sudhamshbachu/eclipse-workspace-new/BupoAPI2/src/main/resources/out/";
 
-	public String generateDoc(String saasTenantName, String propertyAddress, String templateName,
-			Map<String, String> variablesMap) throws Exception {
+	public String generateDoc(String saasTenantName, String templateName, LoiRequestBean loiRequestBean)
+			throws Exception {
 		Preconditions.checkNotNull(saasTenantName, "Saas TenantName is null");
-		Preconditions.checkNotNull(propertyAddress, "Property Address is null");
 		Preconditions.checkNotNull(templateName, "Template Name is null");
-		Preconditions.checkNotNull(variablesMap, "Variables Map is null");
-		String seperator = "REIT";
-
-		String populatedFileName = null;
+		Preconditions.checkNotNull(loiRequestBean, "Variables Map is null");
+		String storedPath = null;
 		try {
 			String resourcePath = getTempalteFilePath(templateName);
 			Path templatePath = Paths.get(GenerateDocService.class.getClassLoader().getResource(resourcePath).toURI());
 			XWPFDocument doc = new XWPFDocument(Files.newInputStream(templatePath));
+
+			Map<String, String> variablesMap = new HashMap<>();
+			variablesMap.put("loi_purchase_price", loiRequestBean.getOfferPrice());
+
+			new PropertyService().populatePropertyData(loiRequestBean.getPropId(), variablesMap);
 
 			// loop through variables, could use some optimization
 			for (String label : variablesMap.keySet()) {
 				doc = replaceTextFor(doc, label, variablesMap.get(label));
 			}
 
-			new DropBoxService().createDocument(propertyAddress, templateName, doc);
+			storedPath = new DropBoxService().createDocument(
+					variablesMap.get("loi_prop_name") + System.currentTimeMillis(), templateName, doc, loiRequestBean);
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error(e);
 			throw new Exception(e);
 		}
 
-		return populatedFileName;
+		return storedPath;
 
 	}
 
@@ -85,7 +90,7 @@ public class GenerateDocService {
 		doc.getParagraphs().forEach(p -> {
 			p.getRuns().forEach(run -> {
 				String text = run.text();
-				System.out.println(text);
+				System.out.println(text + "::::" + replaceText);
 				if (text.contains(findText)) {
 					run.setText(text.replace(findText, replaceText), 0);
 				}

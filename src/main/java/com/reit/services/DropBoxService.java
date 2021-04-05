@@ -2,9 +2,7 @@ package com.reit.services;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -18,15 +16,13 @@ import com.dropbox.core.v2.files.CreateFolderErrorException;
 import com.dropbox.core.v2.files.FileMetadata;
 import com.dropbox.core.v2.files.FolderMetadata;
 import com.dropbox.core.v2.files.GetMetadataErrorException;
-import com.dropbox.core.v2.files.ListFolderResult;
 import com.dropbox.core.v2.files.LookupError;
-import com.dropbox.core.v2.files.Metadata;
 import com.dropbox.core.v2.sharing.AddMember;
+import com.dropbox.core.v2.sharing.ListSharedLinksResult;
 import com.dropbox.core.v2.sharing.MemberSelector;
 import com.dropbox.core.v2.sharing.ShareFolderErrorException;
-import com.dropbox.core.v2.sharing.SharedFolderMetadata;
-import com.dropbox.core.v2.users.FullAccount;
 import com.google.common.base.Preconditions;
+import com.reit.beans.LoiRequestBean;
 
 public class DropBoxService {
 
@@ -35,45 +31,21 @@ public class DropBoxService {
 	private static final DbxClientV2 dbxClient = new DbxClientV2(config, ACCESS_TOKEN);
 	private static String outputDir = "/tmp";
 
-	public static void main(String args[]) throws DbxException, FileNotFoundException, IOException {
-		// Create Dropbox client
-
-		// Get current account info
-		FullAccount account = dbxClient.users().getCurrentAccount();
-		System.out.println(account.getName().getDisplayName());
-
-		// Get files and folder metadata from Dropbox root directory
-		ListFolderResult result = dbxClient.files().listFolder("");
-		while (true) {
-			for (Metadata metadata : result.getEntries()) {
-				System.out.println(metadata.getPathLower());
-			}
-
-			if (!result.getHasMore()) {
-				break;
-			}
-			result = dbxClient.files().listFolderContinue(result.getCursor());
-		}
-
-		// Upload "test.txt" to Dropbox
-		try (InputStream in = new FileInputStream("/tmp/test.txt")) {
-			FileMetadata metadata = dbxClient.files().uploadBuilder("/test.txt").uploadAndFinish(in);
-		}
-	}
-
-	public void createDocument(String propertyName, String category, XWPFDocument doc) throws Exception {
+	public String createDocument(String propertyName, String category, XWPFDocument doc, LoiRequestBean loiRequestBean)
+			throws Exception {
 		// check if folder exists for the address, add auth to the folder
 		// create root folder
 		String rootPath = scrubFolderName(propertyName);
+		String storedPath = null;
 		try {
 			rootPath = createFolder(rootPath);
-			shareFolder(rootPath);
+			shareFolder(rootPath, loiRequestBean.getBuyerEmail());
 			// check if category folder exists for the document category, add auth to the
 			// folder
 			String categoryPath = scrubFolderName(category);
 			createFolder(rootPath + categoryPath);
 
-			// safe file with date
+			// save file with date
 			// write file to temp directory with a unique filename- There may be a way to
 			// skip it
 			String tmpFilePath = String.format("%s/%d_%s", outputDir, System.currentTimeMillis(), category);
@@ -86,16 +58,20 @@ public class DropBoxService {
 			String dropBoxFileName = String.format("%s%s/%s.docx", rootPath, categoryPath, category);
 			try (InputStream in = new FileInputStream(tmpFilePath)) {
 				FileMetadata metadata = dbxClient.files().uploadBuilder(dropBoxFileName).uploadAndFinish(in);
+				storedPath = metadata.getPathLower();
+
 				System.out.println(metadata.getPathLower());
+
 			}
 
-			// write to dropbox
 			// return link
 		} catch (DbxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new Exception("Error creating folder/file");
 		}
+
+		return storedPath;
 
 	}
 
@@ -119,7 +95,6 @@ public class DropBoxService {
 					FolderMetadata folderMetadata = dbxClient.files().createFolderV2(path, true).getMetadata();
 
 					path = folderMetadata.getPathLower();
-
 				}
 
 			}
@@ -132,12 +107,22 @@ public class DropBoxService {
 
 	}
 
-	public void shareFolder(String path) throws ShareFolderErrorException, DbxException {
+	public void shareFolder(String path, String shareEmail) throws ShareFolderErrorException, DbxException {
 
-		SharedFolderMetadata sharedFolderMetadata = dbxClient.sharing().shareFolder(path).getCompleteValue();
-		List<AddMember> list = Arrays.asList(new AddMember(MemberSelector.email("sudhamsh.b@gmail.com")));
+		String sharedFolderId = null;
 
-		dbxClient.sharing().addFolderMember(sharedFolderMetadata.getSharedFolderId(), list);
+		ListSharedLinksResult listSharedLinksResult = dbxClient.sharing().listSharedLinksBuilder().withPath(path)
+				.withDirectOnly(true).start();
+
+		if (listSharedLinksResult.getLinks().isEmpty()) {
+			sharedFolderId = dbxClient.sharing().shareFolder(path).getCompleteValue().getSharedFolderId();
+		} else {
+			sharedFolderId = dbxClient.files().getMetadata(path).getParentSharedFolderId();
+		}
+
+		List<AddMember> list = Arrays.asList(new AddMember(MemberSelector.email(shareEmail)));
+
+		dbxClient.sharing().addFolderMember(sharedFolderId, list);
 
 	}
 

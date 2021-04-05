@@ -53,6 +53,7 @@ public class MongoDao {
 		collectionMap.put("teams", database.getCollection("teams"));
 		collectionMap.put("token", database.getCollection("token"));
 		collectionMap.put("propDeal", database.getCollection("propDeal"));
+		collectionMap.put("countyData", database.getCollection("countyData"));
 
 	}
 
@@ -105,7 +106,7 @@ public class MongoDao {
 		Preconditions.checkNotNull(filter, "Filter is null");
 
 		MongoCollection<T> collection = database.getCollection(collectionName, clazz);
-		Bson limitFilter = limit(3);
+		Bson limitFilter = limit(100);
 		return collection.aggregate(Arrays.asList(filter, limitFilter), clazz).into(new ArrayList<>());
 
 	}

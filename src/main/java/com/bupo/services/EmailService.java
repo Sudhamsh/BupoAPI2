@@ -11,8 +11,8 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import com.bupo.util.CommonUtils;
 import com.google.common.base.Preconditions;
+import com.reit.util.CommonUtils;
 
 public class EmailService {
 

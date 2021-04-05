@@ -6,6 +6,7 @@ public class DataUtils {
 
 	public static double[] normalizeData(double[] data) {
 		double normArr[] = StatUtils.normalize(data);
+
 		return normArr;
 	}
 

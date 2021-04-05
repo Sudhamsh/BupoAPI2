@@ -27,6 +27,7 @@ import com.reit.beans.ErrorBean;
 import com.reit.beans.NotesBean;
 import com.reit.beans.PropertyResultsBean;
 import com.reit.beans.SearchFilter;
+import com.reit.beans.StatusBean;
 import com.reit.enums.FilterOperator;
 import com.reit.services.PropertyService;
 import com.reit.services.TokenService;
@@ -92,6 +93,55 @@ public class PropertyAPI {
 			String loggedInUser = securityContext.getUserPrincipal().getName();
 			note.setUserEmail(loggedInUser);
 			propertyService.addNotes(new ObjectId(propertyId), note);
+
+			response = Response.status(200).build();
+		} catch (ObjectExists e) {
+			logger.error(e);
+			response = Response.status(Status.CONFLICT).entity(Status.NO_CONTENT).build();
+		} catch (Exception e) {
+			logger.error(e);
+			response = Response.serverError().entity(new ErrorBean(500, "Unexpected Error")).build();
+		}
+
+		return response;
+
+	}
+
+	@PUT
+	@Path("/propertyId/{propertyId}/status")
+	@Secured
+	public Response updateStatus(@PathParam("propertyId") String propertyId, StatusBean status,
+			@Context SecurityContext securityContext) {
+		Response response = null;
+
+		try {
+			String loggedInUser = securityContext.getUserPrincipal().getName();
+			status.setUserEmail(loggedInUser);
+			propertyService.updateStatus(new ObjectId(propertyId), status);
+
+			response = Response.status(200).build();
+		} catch (ObjectExists e) {
+			logger.error(e);
+			response = Response.status(Status.CONFLICT).entity(Status.NO_CONTENT).build();
+		} catch (Exception e) {
+			logger.error(e);
+			response = Response.serverError().entity(new ErrorBean(500, "Unexpected Error")).build();
+		}
+
+		return response;
+
+	}
+
+	@PUT
+	@Path("/propertyId/{propertyId}/caps")
+	@Secured
+	public Response updateCaps(@PathParam("propertyId") String propertyId, List<Long> capsList,
+			@Context SecurityContext securityContext) {
+		Response response = null;
+
+		try {
+
+			propertyService.updateCaps(new ObjectId(propertyId), capsList);
 
 			response = Response.status(200).build();
 		} catch (ObjectExists e) {

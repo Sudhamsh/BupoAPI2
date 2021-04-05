@@ -1,0 +1,21 @@
+{
+  "Completed": true,
+  "Message": "Found with standardizer alternative address.",
+  "MinimumPropertyInfos": [
+    {
+      "Municipality": "Unincorporated County",
+      "NeighborhoodDescription": "US 1-SW 144 St to 304 St-Front",
+      "Owner1": "DIXIE AVOCADO LLC",
+      "Owner2": "",
+      "Owner3": "",
+      "SiteAddress": "29645 S FEDERAL HWY",
+      "SiteUnit": "",
+      "Status": "AC Active",
+      "Strap": "30-7908-014-0030",
+      "SubdivisionDescription": "SEMINOLE HGTS NO 1 REV"
+    }
+  ],
+  "PrintMessageFooter": null,
+  "PrintMessageHeader": null,
+  "Total": 1
+}

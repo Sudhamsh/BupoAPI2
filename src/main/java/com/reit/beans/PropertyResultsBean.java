@@ -1,5 +1,8 @@
 package com.reit.beans;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -16,25 +19,31 @@ public class PropertyResultsBean {
 
 	private ObjectId id;
 	private String name;
+	private Address address;
 	private String status;
 	private String externalLink;
 	private float remainingTerm;
-	private float norRemainingTerm;
 	private float cap;
-	private float norCap;
+	private double norCap;
 	private double weightedScore;
 	private float askingPrice;
 	private float pricePerSqft;
-	private float norPricePerSqft;
 	private float rentPerSqft;
-	private float norRentPerSqft;
+	private double norPricePerSqft;
+	private double norRentPerSqft;
+	private double norRemainingTerm;
 	private float noi;
 
 	// zip data fields
 	private int zip;
-	private float population;
-	private float norPopulation;
+	private double population;
+	private double norPopulation;
 	private float income;
-	private float norIncome;
+	private double norIncome;
+
+	private StatusBean statusBean = new StatusBean();
+	private List<Long> capsList = new ArrayList<>();
+
+	private double predictedCap;
 
 }

@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityExistsException;
+import javax.ws.rs.NotFoundException;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.bson.Document;
@@ -37,9 +39,11 @@ import com.reit.beans.PopulationBean;
 import com.reit.beans.PropertyBean;
 import com.reit.beans.PropertyResultsBean;
 import com.reit.beans.SearchFilter;
+import com.reit.beans.StatusBean;
 import com.reit.beans.ZipBean;
 import com.reit.util.DataUtils;
 import com.reit.util.GsonUtils;
+import com.reit.util.MultipleLinearRegression;
 
 public class PropertyService {
 	private LogManager logger = LogManager.getLogger(this.getClass());
@@ -96,7 +100,7 @@ public class PropertyService {
 	}
 
 	public List<PropertyResultsBean> findMatchingProperties(List<SearchFilter> filters) {
-		List<PropertyResultsBean> resultsBeans = new ArrayList<PropertyResultsBean>();
+		List<PropertyResultsBean> propRespList = new ArrayList<PropertyResultsBean>();
 		Preconditions.checkNotNull(filters, "Search Filters is null");
 		Preconditions.checkArgument(filters.size() != 0, "Search Filters is empty");
 
@@ -134,12 +138,35 @@ public class PropertyService {
 
 		System.out.println("results size: " + results.toString());
 
-		// Convert docs to results bean to hide unrequired properties
-		resultsBeans = generateResultsBean(results);
+		// Convert results to results bean to hide unrequired properties
+		propRespList = generateResultsBean(results);
 
-		normalizeData(resultsBeans);
+		// Enrich data
+		enrichData(propRespList);
 
-		return resultsBeans;
+		// normalize data
+		normalizeData(propRespList);
+
+		// predict cap
+		computeMLCapPredictions(propRespList);
+
+		return propRespList;
+
+	}
+
+	public void computeMLCapPredictions(List<PropertyResultsBean> propRespList) {
+		// Create a map to calculate CAP prediction
+		Map<ObjectId, PropertyResultsBean> propResMap = new HashMap<>();
+		for (PropertyResultsBean propResBean : propRespList) {
+			propResMap.put(propResBean.getId(), propResBean);
+		}
+
+		// predict cap
+		for (PropertyResultsBean propResultBean : propRespList) {
+			Map<ObjectId, PropertyResultsBean> propMapCopy = new HashMap<>(propResMap);
+			PropertyResultsBean predictFor = propMapCopy.remove(propResultBean.getId());
+			propResultBean.setPredictedCap(predictCap(propMapCopy.values(), predictFor));
+		}
 
 	}
 
@@ -169,21 +196,28 @@ public class PropertyService {
 
 	}
 
+	public void enrichData(List<PropertyResultsBean> resultsResBeans) {
+
+		for (PropertyResultsBean propResBean : resultsResBeans) {
+			populateZipData(propResBean, propResBean.getAddress().getZip());
+		}
+	}
+
 	public List<PropertyResultsBean> generateResultsBean(List<PropertyBean> results) {
-		List<PropertyResultsBean> resultsBeans = new ArrayList<PropertyResultsBean>();
+		List<PropertyResultsBean> resultsResBeans = new ArrayList<PropertyResultsBean>();
 
 		for (PropertyBean propertyBean : results) {
 
 			try {
 				PropertyResultsBean propResBean = new PropertyResultsBean();
-				System.out.println("id:" + propertyBean.getId());
+
 				BeanUtils.copyProperties(propResBean, propertyBean);
-				System.out.println(" propResBean id:" + propResBean.getId());
 
 				// populate zip data
 				populateZipData(propResBean, propertyBean.getAddress().getZip());
 
-				resultsBeans.add(propResBean);
+				resultsResBeans.add(propResBean);
+
 			} catch (IllegalAccessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -196,7 +230,50 @@ public class PropertyService {
 
 		}
 
-		return resultsBeans;
+		return resultsResBeans;
+	}
+
+	public double predictCap(Collection<PropertyResultsBean> featureColl, PropertyResultsBean propertyBean) {
+		double predictedCap = 0;
+
+		double[][] featureData = new double[featureColl.size()][5];
+		double[] featureCaps = new double[featureColl.size()];
+
+		// Feature order
+		// norPricePerSqft
+		// norRentPerSqft
+		// norRemainingTerm
+		// norPopulation
+		// norIncome
+		int i = 0;
+
+		for (PropertyResultsBean tempProp : featureColl) {
+			System.out.println(gson.toJson(tempProp));
+			featureData[i][0] = tempProp.getPricePerSqft();
+			featureData[i][1] = tempProp.getRentPerSqft();
+			featureData[i][2] = tempProp.getRemainingTerm();
+			featureData[i][3] = tempProp.getPopulation();
+			featureData[i][4] = tempProp.getIncome();
+
+			featureCaps[i] = tempProp.getCap();
+
+			i++;
+
+		}
+
+		System.out.println(gson.toJson(featureData));
+		System.out.println(gson.toJson(featureCaps));
+
+		MultipleLinearRegression regression = new MultipleLinearRegression(featureData, featureCaps);
+
+		predictedCap = regression.beta(0) * propertyBean.getPricePerSqft()
+				+ regression.beta(1) * propertyBean.getRentPerSqft()
+				+ regression.beta(2) * propertyBean.getRemainingTerm()
+				+ regression.beta(3) * propertyBean.getPopulation() + regression.beta(4) * propertyBean.getIncome();
+
+		System.out.println("predictedCap:" + predictedCap);
+
+		return predictedCap;
 	}
 
 	public void normalizeData(List<PropertyResultsBean> resultsBeans) {
@@ -214,7 +291,7 @@ public class PropertyService {
 		double[] norIncome = new double[resultsBeans.size()];
 		double[] norPop = new double[resultsBeans.size()];
 
-		// normalization inputs is a double array :)
+		// normalization inputs as a double array :)
 		for (int i = 0; i < resultsBeans.size(); i++) {
 			remainingTerm[i] = resultsBeans.get(i).getRemainingTerm();
 			cap[i] = resultsBeans.get(i).getCap();
@@ -235,6 +312,16 @@ public class PropertyService {
 
 		// compute weight
 		for (int i = 0; i < resultsBeans.size(); i++) {
+
+			// save normalized data for future use
+			resultsBeans.get(i).setNorRemainingTerm(norRemainingTerm[i]);
+			resultsBeans.get(i).setNorCap(norCap[i]);
+			resultsBeans.get(i).setNorPricePerSqft(norPricePerSqft[i]);
+			resultsBeans.get(i).setNorRentPerSqft(norRentPerSqft[i]);
+			resultsBeans.get(i).setNorIncome(norIncome[i]);
+			resultsBeans.get(i).setNorPopulation(norPop[i]);
+
+			// calculate score
 			double score = norRemainingTerm[i] + norCap[i] + norIncome[i] + norPop[i] - norPricePerSqft[i]
 					- norRentPerSqft[i];
 			resultsBeans.get(i).setWeightedScore(Double.isNaN(score) ? -9.99d : score);
@@ -355,19 +442,47 @@ public class PropertyService {
 		PropertyBean propertyBean = getPopertyById(propObjectId);
 		Preconditions.checkNotNull(propertyBean, "Couldn't find property by Id");
 
-		Map<String, List<NotesBean>> propNotes = propertyBean.getPropNotes();
+		List<NotesBean> propNotes = propertyBean.getPropNotes();
 
 		// init
 		if (propNotes == null) {
 			logger.error("Notes object came as null. Not expected. Receovering by receating the object");
-			propNotes = new HashMap<>();
+			propNotes = new ArrayList<>();
 		}
 
 		// Add notes
 		String tenantName = new TokenService().getTenantName();
 
-		propNotes.put(tenantName, appendNotes(propNotes.get(tenantName), note));
+		propNotes.add(note);
 		propertyBean.setPropNotes(propNotes);
+
+		// save setting
+		updateProp(propertyBean);
+	}
+
+	public void updateStatus(ObjectId propObjectId, StatusBean status) throws Exception {
+		Preconditions.checkNotNull(propObjectId, "ObjId is null");
+		Preconditions.checkNotNull(status, "Status is null");
+
+		// find property
+		PropertyBean propertyBean = getPopertyById(propObjectId);
+		Preconditions.checkNotNull(propertyBean, "Couldn't find property by Id");
+
+		propertyBean.setStatusBean(status);
+
+		// save setting
+		updateProp(propertyBean);
+	}
+
+	public void updateCaps(ObjectId propObjectId, List<Long> capsList) throws Exception {
+		Preconditions.checkNotNull(propObjectId, "ObjId is null");
+		Preconditions.checkNotNull(capsList, "Cap List is null");
+
+		// find property
+		PropertyBean propertyBean = getPopertyById(propObjectId);
+		Preconditions.checkNotNull(propertyBean, "Couldn't find property by Id");
+
+		propertyBean.setCapsList(capsList);
 
 		// save setting
 		updateProp(propertyBean);
@@ -384,7 +499,7 @@ public class PropertyService {
 			throw new EntityExistsException("Couldn't find the property");
 		}
 		if (bean.getPropNotes() != null) {
-			notes = bean.getPropNotes().get(tenantName);
+			notes = bean.getPropNotes();
 		}
 
 		return notes;
@@ -403,15 +518,6 @@ public class PropertyService {
 			logger.error(e);
 			throw new RuntimeException(e);
 		}
-	}
-
-	List<NotesBean> appendNotes(List<NotesBean> notesList, NotesBean newNote) {
-
-		notesList = notesList == null ? new ArrayList<>() : notesList;
-		notesList.add(newNote);
-
-		return notesList;
-
 	}
 
 	public void addTag(ObjectId propId, String tag) throws Exception {
@@ -457,6 +563,24 @@ public class PropertyService {
 		tags = property.getTags() == null ? new HashSet<>() : property.getTags();
 
 		return tags;
+	}
+
+	public void populatePropertyData(ObjectId propId, Map<String, String> variablesMap) {
+		Preconditions.checkNotNull(propId, "Property ID is null");
+		Preconditions.checkNotNull(variablesMap, "Variable Map is null");
+
+		PropertyBean propertyBean = getPopertyById(propId);
+
+		if (propertyBean == null) {
+			throw new NotFoundException("Property Not found");
+		}
+
+		variablesMap.put("loi_prop_name", propertyBean.getPropertyName());
+		variablesMap.put("loi_prop_address", propertyBean.getAddress().getFullAddress());
+		variablesMap.put("loi_noi", Float.toString(propertyBean.getNoi()));
+		variablesMap.put("loi_broker_name", "Reit LLC");
+		variablesMap.put("buyer_name", "Sudhamsh Bachu");
+
 	}
 
 }

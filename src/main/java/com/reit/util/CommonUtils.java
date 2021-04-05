@@ -1,4 +1,4 @@
-package com.bupo.util;
+package com.reit.util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,15 +10,18 @@ import java.nio.charset.StandardCharsets;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class CommonUtils {
+	private static Gson gson = GsonUtils.getGson();
 
 	public static Response getURLResonse(String url) {
 		Client client = ClientBuilder.newClient();
@@ -27,6 +30,18 @@ public class CommonUtils {
 		WebTarget target = client.target(url);
 
 		Response response = target.request(MediaType.APPLICATION_JSON).get();
+
+		return response;
+
+	}
+
+	public static Response httpPost(String url, String jsonPayload) {
+		Client client = ClientBuilder.newClient();
+
+		// query params: ?q=Turku&cnt=10&mode=json&units=metric
+		WebTarget target = client.target(url);
+
+		Response response = target.request(MediaType.APPLICATION_JSON).post(Entity.json(jsonPayload));
 
 		return response;
 
@@ -85,6 +100,12 @@ public class CommonUtils {
 		}
 
 		return content.toString();
+	}
+
+	public static JsonElement readJsonData(String filePath) {
+		String content = readAllBytes(filePath);
+
+		return JsonParser.parseString(content);
 	}
 
 }

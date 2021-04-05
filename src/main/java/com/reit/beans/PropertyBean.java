@@ -1,10 +1,8 @@
 package com.reit.beans;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.bson.types.ObjectId;
@@ -27,6 +25,7 @@ public class PropertyBean {
 
 	private int version = 1;
 	private ObjectId id;
+	private String tenantName;
 
 	@CsvRecurse
 	private Address address;
@@ -99,9 +98,12 @@ public class PropertyBean {
 	private Boolean opportunityZone;
 
 	// Key is tenantName and values are notes
-	private Map<String, List<NotesBean>> propNotes = new HashMap<String, List<NotesBean>>();
+	private List<NotesBean> propNotes = new ArrayList<>();
+
+	private StatusBean statusBean = new StatusBean();
 
 	// tags
 	private Set<String> tags = new HashSet<>();
+	private List<Long> capsList = new ArrayList<>();
 
 }

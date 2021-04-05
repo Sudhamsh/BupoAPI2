@@ -9,13 +9,16 @@ import org.bson.types.ObjectId;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.api.client.util.Strings;
 import com.reit.beans.Address;
 import com.reit.beans.NotesBean;
 import com.reit.beans.PropertyBean;
 import com.reit.beans.PropertyResultsBean;
 import com.reit.beans.SearchFilter;
+import com.reit.beans.StatusBean;
 import com.reit.beans.TenantDetails;
 import com.reit.enums.FilterOperator;
+import com.reit.enums.PropStatus;
 
 public class PropertyServiceTest {
 
@@ -102,9 +105,33 @@ public class PropertyServiceTest {
 		}
 	}
 
+	@Test
+	public void updateStatus() {
+		// Create prop
+		PropertyBean propertyBean = getDummyPropertyBean();
+		ObjectId objId = propertyService.createNewProperty(propertyBean);
+
+		// update Status
+
+		try {
+			StatusBean statusBean = new StatusBean("abcd", PropStatus.SHORTLISTED);
+			propertyService.updateStatus(objId, statusBean);
+
+			PropertyBean propertyBean2 = propertyService.getPopertyById(objId);
+			Assert.assertTrue("Prop Notes size is not 1",
+					Strings.isNullOrEmpty(propertyBean2.getStatusBean().getUserEmail()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Assert.fail("Save notes failed with an exception." + e.getMessage());
+		}
+	}
+
 	public static PropertyBean getDummyPropertyBean() {
 		PropertyBean propertyBean = new PropertyBean();
 		Address address = new Address();
+		propertyBean.setPropertyName("Dev Prop Name");
+		propertyBean.setNoi(1000000);
 		TenantDetails tenantDetails = new TenantDetails();
 		address.setFullAddress(System.currentTimeMillis() + " 3929 Vineyard Dr,Dunkirk,NY,14048");
 
